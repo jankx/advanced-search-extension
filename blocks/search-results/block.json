@@ -1,0 +1,21 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "jankx-advanced-search/results",
+    "title": "Kết quả tìm kiếm",
+    "category": "jankx",
+    "icon": "search",
+    "description": "Kết quả tìm kiếm với tabs phân loại, sắp xếp theo giá/đánh giá, lưới 4 cột và phân trang.",
+    "textdomain": "jankx",
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "attributes": {
+        "perPage": {
+            "type": "number",
+            "default": 12
+        }
+    },
+    "render": "file:./render.php"
+}

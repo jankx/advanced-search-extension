@@ -1,0 +1,22 @@
+{
+    "name": "Advanced Search",
+    "version": "1.0.0",
+    "description": "Cải tiến trang kết quả tìm kiếm với tabs phân loại (Trải nghiệm, Cẩm nang, Ăn gì ở đâu, Tour & Dịch vụ), sắp xếp theo giá/đánh giá và lưới kết quả 4 cột theo giao diện tối.",
+    "author": "Puleeno Nguyen",
+    "extension_id": "advanced-search",
+    "context": [
+        "frontend",
+        "admin",
+        "rest",
+        "ajax"
+    ],
+    "caller": {
+        "file": "AdvancedSearchExtension.php",
+        "class": "Jankx\\Extensions\\AdvancedSearch\\AdvancedSearchExtension",
+        "method": "init"
+    },
+    "requirements": {
+        "php": ">=7.4"
+    },
+    "auto_activate": true
+}
