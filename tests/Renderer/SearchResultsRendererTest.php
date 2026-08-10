@@ -10,12 +10,12 @@ use Jankx\Extensions\AdvancedSearch\Tests\TestCase;
  */
 class SearchResultsRendererTest extends TestCase
 {
-    protected function render(array $get = [], int $paged = 0): string
+    protected function render(array $get = [], int $paged = 0, array $attributes = []): string
     {
         $_GET = $get;
         $GLOBALS['__paged'] = $paged;
 
-        return SearchResultsRenderer::instance()->render();
+        return SearchResultsRenderer::instance()->render($attributes);
     }
 
     public function test_render_includes_header_tabs_and_count()
@@ -30,7 +30,7 @@ class SearchResultsRendererTest extends TestCase
         $this->assertStringContainsString('Trải nghiệm', $html);
         $this->assertStringContainsString('Cẩm nang du lịch', $html);
         $this->assertStringContainsString('Ăn gì ở đâu', $html);
-        $this->assertStringContainsString('Tour &amp; Dịch vụ', $html);
+        $this->assertStringContainsString('Tour & Dịch vụ', $html);
         $this->assertStringContainsString('1 kết quả', $html);
     }
 
@@ -41,11 +41,14 @@ class SearchResultsRendererTest extends TestCase
 
         // Active tab link gets the is-active class and aria-current.
         $this->assertMatchesRegularExpression(
-            '/<a[^>]*class="[^"]*is-active[^"]*"[^>]*aria-current="page"[^>]*>Tour &amp; Dịch vụ<\/a>/',
+            '/<a[^>]*class="[^"]*is-active[^"]*"[^>]*aria-current="page"[^>]*>\s*Tour & Dịch vụ\s*<\/a>/',
             $html
         );
         // The sort select keeps the current orderby selected.
-        $this->assertStringContainsString("value=\"price_asc\" selected='selected'", $html);
+        $this->assertMatchesRegularExpression(
+            "/value=\"price_asc\"\s+selected='selected'/",
+            $html
+        );
     }
 
     public function test_render_emits_result_card()
@@ -77,7 +80,7 @@ class SearchResultsRendererTest extends TestCase
             $this->seedTour(['post_title' => 'Tour Tràng An ' . $i]);
         }
 
-        $html = $this->render(['s' => 'Tràng An'], 2);
+        $html = $this->render(['s' => 'Tràng An'], 2, ['perPage' => 2]);
 
         $this->assertStringContainsString('jankx-advanced-search__pagination', $html);
         $this->assertStringContainsString('paged=2', $html);

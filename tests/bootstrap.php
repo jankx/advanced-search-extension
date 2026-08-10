@@ -331,8 +331,13 @@ if (!function_exists('advanced_search_test_stub_wp_functions')) {
 
             return preg_replace('/[^a-z0-9_\-]/', '', $key);
         });
-        Brain\Monkey\Functions\when('selected')->alias(function ($selected, $current = true) {
-            return (string) $selected === (string) $current ? " selected='selected'" : '';
+        Brain\Monkey\Functions\when('selected')->alias(function ($selected, $current = true, $echo = true) {
+            $result = (string) $selected === (string) $current ? " selected='selected'" : '';
+            if ($echo) {
+                echo $result;
+            }
+
+            return $result;
         });
         Brain\Monkey\Functions\when('number_format_i18n')->alias(function ($number, $decimals = 0) {
             return number_format($number, $decimals);

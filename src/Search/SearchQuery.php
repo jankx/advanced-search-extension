@@ -48,13 +48,23 @@ class SearchQuery
         }
 
         $query = new \WP_Query(array_merge($args, $sort['args']));
+        $totalPages = (int) $query->max_num_pages;
+        $page = min($page, max(1, $totalPages));
+
+        // WP_Query slices by the requested paged, so a page past the last one
+        // returns an empty page. Re-run with the clamped page to get results.
+        if ($totalPages > 0 && $page < (int) $args['paged']) {
+            $args['paged'] = $page;
+            $query = new \WP_Query(array_merge($args, $sort['args']));
+        }
+
         $items = array_map([$this->provider, 'format_post'], $query->posts);
 
         return [
             'items' => $items,
             'total' => (int) $query->found_posts,
             'total_pages' => (int) $query->max_num_pages,
-            'page' => min($page, max(1, (int) $query->max_num_pages)),
+            'page' => $page,
         ];
     }
 
