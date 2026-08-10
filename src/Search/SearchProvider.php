@@ -283,8 +283,9 @@ class SearchProvider
         return (float) get_post_meta($post->ID, $config['price_meta'], true);
     }
 
-    public function get_price_from(\WP_Post $post): bool
+    public function get_price_from($post): bool
     {
+        $post = $this->to_post($post);
         $config = $this->get_post_type_config($post->post_type);
         if ($config['price_from_meta'] === '') {
             return false;
@@ -293,8 +294,9 @@ class SearchProvider
         return (bool) get_post_meta($post->ID, $config['price_from_meta'], true);
     }
 
-    public function get_rating(\WP_Post $post): float
+    public function get_rating($post): float
     {
+        $post = $this->to_post($post);
         $config = $this->get_post_type_config($post->post_type);
         if ($config['rating_meta'] === '') {
             return 0.0;
@@ -303,8 +305,9 @@ class SearchProvider
         return round((float) get_post_meta($post->ID, $config['rating_meta'], true), 1);
     }
 
-    public function get_review_count(\WP_Post $post): int
+    public function get_review_count($post): int
     {
+        $post = $this->to_post($post);
         $config = $this->get_post_type_config($post->post_type);
         if ($config['review_meta'] === '') {
             return 0;
@@ -313,8 +316,9 @@ class SearchProvider
         return (int) get_post_meta($post->ID, $config['review_meta'], true);
     }
 
-    public function get_duration(\WP_Post $post): string
+    public function get_duration($post): string
     {
+        $post = $this->to_post($post);
         $config = $this->get_post_type_config($post->post_type);
 
         $days = $config['days_meta'] !== '' ? (int) get_post_meta($post->ID, $config['days_meta'], true) : 0;
@@ -323,8 +327,9 @@ class SearchProvider
         return $this->format_duration($days, $nights);
     }
 
-    public function get_tag(\WP_Post $post): string
+    public function get_tag($post): string
     {
+        $post = $this->to_post($post);
         $config = $this->get_post_type_config($post->post_type);
 
         foreach ($config['tag_taxonomies'] as $taxonomy) {
@@ -354,6 +359,20 @@ class SearchProvider
         }
 
         return (string) get_the_post_thumbnail_url($post->ID, 'medium_large');
+    }
+
+    /**
+     * Resolve a post ID or post object to a WP_Post instance.
+     */
+    protected function to_post($post): \WP_Post
+    {
+        if ($post instanceof \WP_Post) {
+            return $post;
+        }
+
+        $resolved = get_post((int) $post);
+
+        return $resolved instanceof \WP_Post ? $resolved : new \WP_Post(['ID' => 0, 'post_type' => 'post']);
     }
 
     // ── Formatting helpers ──────────────────────────────────────────────

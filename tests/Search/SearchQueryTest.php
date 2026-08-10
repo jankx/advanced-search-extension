@@ -76,7 +76,7 @@ class SearchQueryTest extends TestCase
 
         $result = $this->query()->run('Tràng An', SearchProvider::TAB_ALL, SearchProvider::SORT_RECOMMENDED, 1, 12);
 
-        $this->assertSame(['Tour Tràng An 1 ngày', 'Chèo thuyền Tràng An'], $this->titles($result));
+        $this->assertSame(['Chèo thuyền Tràng An', 'Tour Tràng An 1 ngày'], $this->titles($result));
         $this->assertSame(2, $result['total']);
         $this->assertSame(1, $result['total_pages']);
     }
@@ -94,10 +94,10 @@ class SearchQueryTest extends TestCase
         $result = $this->query()->run('', SearchProvider::TAB_GUIDE, SearchProvider::SORT_RECOMMENDED, 1, 12);
         $this->assertSame(['Cẩm nang du lịch Ninh Bình'], $this->titles($result));
 
-        // Tour & Dịch vụ covers tours + products.
+        // Tour & Dịch vụ covers tours + products (newest first).
         $result = $this->query()->run('', SearchProvider::TAB_TOUR, SearchProvider::SORT_RECOMMENDED, 1, 12);
         $this->assertSame(
-            ['Tour Hoa Lư Cổ Đô cao cấp', 'Tour Tràng An 1 ngày', 'Cốm Cháy Cố Đô'],
+            ['Cốm Cháy Cố Đô', 'Tour Hoa Lư Cổ Đô cao cấp', 'Tour Tràng An 1 ngày'],
             $this->titles($result)
         );
     }
@@ -151,15 +151,16 @@ class SearchQueryTest extends TestCase
         $this->seedCatalog();
 
         // Mixed post types → different price meta keys → PHP-side sort.
+        // The guide has no price meta (0) so it sorts first ascending.
         $result = $this->query()->run('', SearchProvider::TAB_ALL, SearchProvider::SORT_PRICE_ASC, 1, 12);
 
         $this->assertSame(
-            ['Tam Cốc Bích Động', 'Chèo thuyền Tràng An', 'Cốm Cháy Cố Đô', 'Tour Tràng An 1 ngày', 'Tour Hoa Lư Cổ Đô cao cấp', 'Cẩm nang du lịch Ninh Bình'],
+            ['Cẩm nang du lịch Ninh Bình', 'Tam Cốc Bích Động', 'Chèo thuyền Tràng An', 'Cốm Cháy Cố Đô', 'Tour Tràng An 1 ngày', 'Tour Hoa Lư Cổ Đô cao cấp'],
             $this->titles($result)
         );
-        $this->assertSame(150000.0, $result['items'][0]['price']);
-        $this->assertSame(3500000.0, $result['items'][4]['price']);
-        $this->assertSame(0.0, $result['items'][5]['price']);
+        $this->assertSame(0.0, $result['items'][0]['price']);
+        $this->assertSame(150000.0, $result['items'][1]['price']);
+        $this->assertSame(3500000.0, $result['items'][5]['price']);
     }
 
     public function test_price_desc_mixed_types_uses_php_sort()

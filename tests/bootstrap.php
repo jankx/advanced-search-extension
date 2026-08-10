@@ -18,6 +18,11 @@ if (!defined('DAY_IN_SECONDS')) {
     define('DAY_IN_SECONDS', 86400);
 }
 
+// WordPress defines this constant; templates use it as a direct-access guard.
+if (!defined('ABSPATH')) {
+    define('ABSPATH', 'unit-test');
+}
+
 // 1. Composer autoloader (dev dependencies + PSR-4 for src and tests).
 $composerAutoload = __DIR__ . '/../libs/autoload.php';
 if (file_exists($composerAutoload)) {
