@@ -1,5 +1,12 @@
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, ToggleControl, TextControl, SelectControl, NumberControl, UnitControl } from '@wordpress/components';
+import {
+	PanelBody,
+	ToggleControl,
+	TextControl,
+	SelectControl,
+	__experimentalNumberControl as NumberControl,
+	__experimentalUnitControl as UnitControl,
+} from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 const WIDTH_UNITS = [
