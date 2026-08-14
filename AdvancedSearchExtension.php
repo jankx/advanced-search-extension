@@ -51,6 +51,11 @@ class AdvancedSearchExtension extends AbstractExtension
     public function init(): void
     {
         self::$instance = $this;
+
+        // Register blocks as early as possible so the block editor
+        // recognises jankx-advanced-search/results even when
+        // ThemeExtensionManager hasn't called activate() yet.
+        add_action('init', [$this, 'register_blocks']);
     }
 
     public static function get_instance(): ?self
