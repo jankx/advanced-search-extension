@@ -342,7 +342,7 @@ class SearchProvider
         return (string) $config['label'];
     }
 
-    protected function get_excerpt(\WP_Post $post): string
+    public function get_excerpt(\WP_Post $post): string
     {
         $text = $post->post_excerpt;
         if ($text === '') {
@@ -352,7 +352,7 @@ class SearchProvider
         return trim(wp_trim_words($text, 20, '…'));
     }
 
-    protected function get_thumbnail(\WP_Post $post): string
+    public function get_thumbnail(\WP_Post $post): string
     {
         if (!has_post_thumbnail($post->ID)) {
             return '';
@@ -364,7 +364,7 @@ class SearchProvider
     /**
      * Resolve a post ID or post object to a WP_Post instance.
      */
-    protected function to_post($post): \WP_Post
+    public function to_post($post): \WP_Post
     {
         if ($post instanceof \WP_Post) {
             return $post;

@@ -23,11 +23,23 @@ class SearchQuery
         $this->provider = $provider;
     }
 
-    public function run(string $keyword, string $tab, string $orderby, int $page, int $perPage): array
-    {
+    public function run(
+        string $keyword,
+        string $tab,
+        string $orderby,
+        int $page,
+        int $perPage,
+        string $postTypeFilter = '',
+        array $taxQuery = []
+    ): array {
         $postTypes = $this->provider->get_tab_post_types($tab);
         if (empty($postTypes)) {
             $postTypes = ['post'];
+        }
+
+        // Post-type filter box: narrow down to a single post type inside the tab
+        if ($postTypeFilter !== '' && in_array($postTypeFilter, $postTypes, true)) {
+            $postTypes = [$postTypeFilter];
         }
 
         $args = [
@@ -39,6 +51,20 @@ class SearchQuery
 
         if ($keyword !== '') {
             $args['s'] = $keyword;
+        }
+
+        // Taxonomy filter box: each item is ['taxonomy'=>'...', 'terms'=>[...], 'operator'=>'IN']
+        if (!empty($taxQuery)) {
+            $args['tax_query'] = array_map(function ($f) {
+                return [
+                    'taxonomy' => sanitize_key($f['taxonomy'] ?? ''),
+                    'field' => 'slug',
+                    'terms' => array_map('sanitize_key', (array) ($f['terms'] ?? [])),
+                    'operator' => in_array($f['operator'] ?? 'IN', ['IN', 'NOT IN', 'AND'], true)
+                        ? $f['operator']
+                        : 'IN',
+                ];
+            }, $taxQuery);
         }
 
         $sort = $this->resolve_sort($orderby, $postTypes, $keyword !== '');

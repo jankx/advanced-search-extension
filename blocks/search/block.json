@@ -2,11 +2,19 @@
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 3,
     "name": "jankx-advanced-search/search",
-    "title": "Tìm kiếm nâng cao",
+    "title": "Advanced Search",
     "category": "jankx",
     "icon": "search",
-    "description": "Clone của block Search WordPress core, có thể tùy chỉnh và kế thừa hệ sinh thái giao diện Jankx.",
-    "keywords": ["search", "tim kiem", "form", "tìm kiếm"],
+    "description": "Search form với auto-suggest (Federated Search), post type selector và taxonomy filter box — thay thế smart-search block.",
+    "keywords": [
+        "search",
+        "tim kiem",
+        "form",
+        "tìm kiếm",
+        "suggestion",
+        "federated",
+        "filter"
+    ],
     "textdomain": "jankx",
     "attributes": {
         "label": {
@@ -26,7 +34,8 @@
             "type": "number"
         },
         "widthUnit": {
-            "type": "string"
+            "type": "string",
+            "default": "px"
         },
         "buttonText": {
             "type": "string",
@@ -47,11 +56,57 @@
         "isSearchFieldHidden": {
             "type": "boolean",
             "default": false
+        },
+        "enableSuggestions": {
+            "type": "boolean",
+            "default": true
+        },
+        "suggestionMinChars": {
+            "type": "number",
+            "default": 2
+        },
+        "suggestionDebounce": {
+            "type": "number",
+            "default": 300
+        },
+        "suggestionPerGroup": {
+            "type": "number",
+            "default": 5
+        },
+        "showPostTypeFilter": {
+            "type": "boolean",
+            "default": false
+        },
+        "showTaxonomyFilter": {
+            "type": "boolean",
+            "default": false
+        },
+        "defaultPostType": {
+            "type": "string",
+            "default": ""
+        },
+        "filterTaxonomy": {
+            "type": "string",
+            "default": ""
+        },
+        "queryId": {
+            "type": "string",
+            "default": ""
+        },
+        "searchResultsUrl": {
+            "type": "string",
+            "default": ""
         }
     },
     "supports": {
         "anchor": true,
-        "align": ["left", "center", "right"],
+        "align": [
+            "left",
+            "center",
+            "right",
+            "wide",
+            "full"
+        ],
         "color": {
             "gradients": true,
             "__experimentalSkipSerialization": true,
@@ -87,12 +142,12 @@
             }
         },
         "spacing": {
-            "margin": true
+            "margin": true,
+            "padding": true
         },
         "html": false
     },
-    "editorScript": "file:./build/index.tsx.js",
-    "editorStyle": "file:./build/index.tsx.css",
-    "style": "file:./build/style-index.tsx.css",
-    "render": "file:./render.php"
+    "editorScript": "file:../../dist/blocks/search/index.js",
+    "editorStyle": "file:../../dist/blocks/search.css",
+    "style": "file:../../dist/blocks/style-search.css"
 }

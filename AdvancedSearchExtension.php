@@ -95,7 +95,13 @@ class AdvancedSearchExtension extends AbstractExtension
                 continue;
             }
 
-            register_block_type_from_metadata($blockDir);
+            $args = [];
+            // Override render logic for search block to use PHP class
+            if ($blockName === 'jankx-advanced-search/search') {
+                $args['render_callback'] = [\Jankx\Extensions\AdvancedSearch\Block\SearchBlock::instance(), 'render'];
+            }
+
+            register_block_type_from_metadata($blockDir, $args);
         }
     }
 
