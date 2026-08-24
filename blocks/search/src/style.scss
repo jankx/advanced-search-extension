@@ -290,6 +290,43 @@
                 text-decoration: underline;
                 background: #fcfcfc;
             }
-        }
-    }
+		}
+	}
+}
+
+/* --- Icon Button Styles --- */
+
+.wp-block-search__icon-button {
+	.wp-block-search__button {
+		&.has-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			line-height: 0;
+
+			.material-icons,
+			.dashicons,
+			i.fas,
+			i.far,
+			i.fab {
+				pointer-events: none;
+			}
+		}
+	}
+}
+
+.jankx-search-form__inner-blocks {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-left: 6px;
+
+	.jankx-icon-picker-block,
+	.wp-block-jankx-svg-icon,
+	.wp-block-jankx-advanced-image-box {
+		display: inline-flex;
+		align-items: center;
+		margin: 0;
+	}
 }

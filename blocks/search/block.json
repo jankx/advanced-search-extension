@@ -96,6 +96,42 @@
         "searchResultsUrl": {
             "type": "string",
             "default": ""
+        },
+        "iconName": {
+            "type": "string",
+            "default": ""
+        },
+        "iconSet": {
+            "type": "string",
+            "default": "material"
+        },
+        "iconCategory": {
+            "type": "string",
+            "default": "navigation"
+        },
+        "iconSize": {
+            "type": "string",
+            "default": "24px"
+        },
+        "iconColor": {
+            "type": "string",
+            "default": ""
+        },
+        "iconBackgroundColor": {
+            "type": "string",
+            "default": ""
+        },
+        "iconBackgroundValue": {
+            "type": "string",
+            "default": ""
+        },
+        "iconPadding": {
+            "type": "string",
+            "default": "8px"
+        },
+        "iconBorderRadius": {
+            "type": "string",
+            "default": "4px"
         }
     },
     "supports": {

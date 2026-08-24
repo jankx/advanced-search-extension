@@ -51,6 +51,14 @@ class SearchBlock
             'filterTaxonomy' => '',
             'queryId' => '',
             'searchResultsUrl' => '',
+            'iconName' => '',
+            'iconSet' => 'material',
+            'iconSize' => '24px',
+            'iconColor' => '',
+            'iconBackgroundColor' => '',
+            'iconBackgroundValue' => '',
+            'iconPadding' => '8px',
+            'iconBorderRadius' => '4px',
         ]);
 
         $input_id = \wp_unique_id('jankx-search-input-');
@@ -72,7 +80,20 @@ class SearchBlock
             ? $this->button_markup($attributes, $inline, $use_icon, $is_button_inside, $color_cls, $typo_cls, $border_color_cls)
             : '';
 
+        // Render inner blocks (icon-picker, svg-icon, advanced-image-box) if present
+        $inner_blocks_html = '';
+        if (!empty($block->inner_blocks) && count($block->inner_blocks) > 0) {
+            foreach ($block->inner_blocks as $inner_block) {
+                $inner_blocks_html .= $inner_block->render();
+            }
+        }
+
         $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $button_html);
+
+        // Append inner blocks after the field wrapper (e.g. custom icon blocks)
+        if (!empty($inner_blocks_html)) {
+            $field_markup .= '<div class="jankx-search-form__inner-blocks">' . $inner_blocks_html . '</div>';
+        }
 
         $filter_markup = $this->filter_boxes_markup($attributes, $input_id);
         $suggestion_markup = $this->suggestion_container_markup($attributes);
@@ -189,9 +210,22 @@ class SearchBlock
             $inner = \wp_kses_post($a['buttonText'] ?? '');
         } else {
             $classes[] = 'has-icon';
-            $inner = '<svg class="search-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">'
-                . '<path d="M13 5c-3.3 0-6 2.7-6 6 0 1.4.5 2.7 1.3 3.7l-3.8 3.8 1.1 1.1 3.8-3.8c1 .8 2.3 1.3 3.7 1.3 3.3 0 6-2.7 6-6S16.3 5 13 5zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>'
-                . '</svg>';
+
+            $icon_name = $a['iconName'] ?? '';
+            $icon_set = $a['iconSet'] ?? 'material';
+            $icon_size = $a['iconSize'] ?? '24px';
+            $icon_color = $a['iconColor'] ?? '';
+            $icon_bg_value = $a['iconBackgroundValue'] ?? '';
+            $icon_padding = $a['iconPadding'] ?? '8px';
+            $icon_border_radius = $a['iconBorderRadius'] ?? '4px';
+
+            if (!empty($icon_name)) {
+                $inner = $this->render_custom_icon($icon_name, $icon_set, $icon_size, $icon_color, $icon_bg_value, $icon_padding, $icon_border_radius);
+            } else {
+                $inner = '<svg class="search-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">'
+                    . '<path d="M13 5c-3.3 0-6 2.7-6 6 0 1.4.5 2.7 1.3 3.7l-3.8 3.8 1.1 1.1 3.8-3.8c1 .8 2.3 1.3 3.7 1.3 3.3 0 6-2.7 6-6S16.3 5 13 5zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>'
+                    . '</svg>';
+            }
         }
 
         $el_class = \wp_theme_get_element_class_name('button');
@@ -199,13 +233,68 @@ class SearchBlock
             $classes[] = $el_class;
         }
 
-        $tag = new \WP_HTML_Tag_Processor(sprintf('<button type="submit" %s>%s</button>', $inline['button'], $inner));
+        $icon_style = '';
+        if ($use_icon && !empty($icon_bg_value)) {
+            $styles = [];
+            $styles[] = sprintf('background-color: %s;', \esc_attr($icon_bg_value));
+            if (!empty($icon_padding)) {
+                $styles[] = sprintf('padding: %s;', \esc_attr($icon_padding));
+            }
+            if (!empty($icon_border_radius)) {
+                $styles[] = sprintf('border-radius: %s;', \esc_attr($icon_border_radius));
+            }
+            if (!empty($styles)) {
+                $icon_style = sprintf(' style="%s"', \esc_attr(\safecss_filter_attr(implode(' ', $styles))));
+            }
+        }
+
+        $tag = new \WP_HTML_Tag_Processor(sprintf('<button type="submit" %s>%s</button>', $inline['button'] . $icon_style, $inner));
         if ($tag->next_tag()) {
             $tag->add_class(implode(' ', $classes));
             $tag->set_attribute('aria-label', \wp_strip_all_tags($a['buttonText'] ?? ''));
         }
 
         return (string) $tag;
+    }
+
+    /**
+     * Render a custom icon from the icon picker.
+     *
+     * @param string $name     Icon name
+     * @param string $set      Icon set (material|fontawesome|dashicons)
+     * @param string $size     Icon size (CSS value)
+     * @param string $color    Icon color (CSS value)
+     * @param string $bg_value Background color value
+     * @param string $padding  Padding around icon
+     * @param string $radius   Border radius
+     * @return string HTML markup
+     */
+    private function render_custom_icon(string $name, string $set, string $size, string $color, string $bg_value, string $padding, string $radius): string
+    {
+        $style_parts = [];
+        $style_parts[] = sprintf('font-size: %s;', \esc_attr($size));
+        $style_parts[] = 'line-height: 1;';
+        $style_parts[] = 'display: inline-flex;';
+        $style_parts[] = 'align-items: center;';
+        $style_parts[] = 'justify-content: center;';
+
+        if (!empty($color)) {
+            $style_parts[] = sprintf('color: %s;', \esc_attr($color));
+        }
+
+        $style = \safecss_filter_attr(implode(' ', $style_parts));
+
+        switch ($set) {
+            case 'fontawesome':
+                return sprintf('<i class="fas fa-%s" style="%s" aria-hidden="true"></i>', \esc_attr($name), \esc_attr($style));
+
+            case 'dashicons':
+                return sprintf('<span class="dashicons dashicons-%s" style="%s" aria-hidden="true"></span>', \esc_attr($name), \esc_attr($style));
+
+            case 'material':
+            default:
+                return sprintf('<span class="material-icons" style="%s" aria-hidden="true">%s</span>', \esc_attr($style), \esc_html($name));
+        }
     }
 
     // ── Field wrapper ────────────────────────────────────────────────────
