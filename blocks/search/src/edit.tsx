@@ -151,11 +151,12 @@ function IconPickerModal({ isOpen, onClose, onSelect, currentIcon, currentSet })
 		return list.filter((name) => name.toLowerCase().includes(lower));
 	}, [activeSet, search]);
 
+	if (!isOpen) return null;
+
 	return (
 		<Modal
 			title={__('Choose an icon', 'jankx')}
-			isOpen={isOpen}
-			onClose={onClose}
+			onRequestClose={onClose}
 			className="jankx-icon-picker-modal"
 			style={{ maxWidth: '500px' }}
 		>
