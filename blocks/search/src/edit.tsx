@@ -232,6 +232,9 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		iconBackgroundValue = '',
 		iconPadding = '8px',
 		iconBorderRadius = '4px',
+		// Block Supports — color
+		textColor,
+		style: blockStyle = {},
 	} = attributes;
 
 	const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
@@ -239,6 +242,11 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 	const inputId = `wp-block-search__input-${clientId}`;
 	const showButton = buttonPosition !== 'no-button';
 	const insideWrapperStyle = width ? { width: `${width}${widthUnit}` } : undefined;
+
+	// Resolve text color: custom value takes priority, then preset slug via CSS var.
+	const resolvedTextColor: string | undefined =
+		(blockStyle as any)?.color?.text ||
+		(textColor ? `var(--wp--preset--color--${textColor})` : undefined);
 
 	const blockProps = useBlockProps({
 		className: [
@@ -250,11 +258,19 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 
 	const hasIconBackground = !!(iconBackgroundColor || iconBackgroundValue);
 
-	const iconButtonStyle = hasIconBackground ? {
-		backgroundColor: iconBackgroundValue || undefined,
-		padding: iconPadding || undefined,
-		borderRadius: iconBorderRadius || undefined,
-	} : undefined;
+	const iconButtonStyle: { [key: string]: string | undefined } = {
+		...(hasIconBackground ? {
+			backgroundColor: iconBackgroundValue || undefined,
+			padding: iconPadding || undefined,
+			borderRadius: iconBorderRadius || undefined,
+		} : {}),
+		...(resolvedTextColor ? { color: resolvedTextColor } : {}),
+	};
+
+	// Inline style for input/label elements in editor preview
+	const textStyle: { color?: string } = resolvedTextColor
+		? { color: resolvedTextColor }
+		: {};
 
 	const renderedIcon = iconName
 		? renderIcon(iconName, iconSet, iconSize, iconColor)
@@ -434,10 +450,18 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 				<label
 					className={showLabel ? 'wp-block-search__label' : 'screen-reader-text'}
 					htmlFor={inputId}
+					style={textStyle}
 				>
 					{label || __('Tìm kiếm', 'jankx')}
 				</label>
-				<div className="wp-block-search__inside-wrapper" style={insideWrapperStyle}>
+				<div
+					className="wp-block-search__inside-wrapper"
+					style={{
+						...insideWrapperStyle,
+						// Pass placeholder color as CSS variable for ::placeholder targeting in editor
+						...(resolvedTextColor ? { ['--jankx-search-placeholder-color' as string]: resolvedTextColor } : {}),
+					}}
+				>
 					<input
 						id={inputId}
 						className="wp-block-search__input"
@@ -445,12 +469,13 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 						placeholder={placeholder}
 						value=""
 						readOnly
+						style={textStyle}
 					/>
 					{showButton && (
 						<button
 							className="wp-block-search__button wp-element-button"
 							type="submit"
-							style={iconButtonStyle}
+							style={Object.keys(iconButtonStyle).length ? iconButtonStyle : undefined}
 						>
 							{buttonUseIcon ? (
 								renderedIcon || (

@@ -92,6 +92,12 @@
 	border: 1px solid #949494;
 	text-decoration: unset !important;
 	appearance: initial;
+
+	// Follow placeholder color from CSS custom property set by editor JS / PHP style tag.
+	&::placeholder {
+		color: var(--jankx-search-placeholder-color, currentColor);
+		opacity: 0.7;
+	}
 }
 
 :where(.wp-block-search__button-inside .wp-block-search__inside-wrapper) {

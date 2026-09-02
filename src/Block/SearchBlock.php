@@ -73,6 +73,9 @@ class SearchBlock
         $typo_cls = $this->typography_classes($attributes);
         $border_color_cls = $this->border_color_classes($attributes);
 
+        // Scoped <style> cho placeholder color (::placeholder không thể dùng inline style)
+        $placeholder_style = $this->placeholder_style($attributes, $input_id);
+
         $label_html = $this->label_markup($attributes, $input_id, $inline, $show_label, $typo_cls);
         $input_html = $this->input_markup($attributes, $input_id, $inline, $is_button_inside, $typo_cls, $border_color_cls);
         $hidden_html = $this->hidden_params_markup($query_params);
@@ -106,11 +109,13 @@ class SearchBlock
         $data_attrs = $this->data_attributes($attributes, $input_id);
 
         return sprintf(
-            '<div class="jankx-search-form__container" %s>'
+            '%s'
+            . '<div class="jankx-search-form__container" %s>'
             . '<form role="search" method="get" action="%s" %s>'
             . '%s%s%s%s'
             . '</form>'
             . '</div>',
+            $placeholder_style,
             $data_attrs,
             $action,
             $wrapper_attrs,
@@ -512,9 +517,18 @@ class SearchBlock
             }
         }
 
-        // Colours on button
+        // Colours — text color applies to all elements; background only on button
         if (!empty($a['style']['color']['text'])) {
-            $button[] = sprintf('color: %s;', $a['style']['color']['text']);
+            $color_decl = sprintf('color: %s;', $a['style']['color']['text']);
+            $button[] = $color_decl;
+            $input[] = $color_decl;
+            $label[] = $color_decl;
+        } elseif (!empty($a['textColor'])) {
+            // Preset text color via CSS variable
+            $color_decl = sprintf('color: var(--wp--preset--color--%s);', \esc_attr($a['textColor']));
+            $button[] = $color_decl;
+            $input[] = $color_decl;
+            $label[] = $color_decl;
         }
         if (!empty($a['style']['color']['background'])) {
             $button[] = sprintf('background-color: %s;', $a['style']['color']['background']);
@@ -573,6 +587,42 @@ class SearchBlock
         }
 
         return implode('', $parts);
+    }
+
+    /**
+     * Generate a scoped <style> tag to apply placeholder color.
+     *
+     * The ::placeholder pseudo-element cannot be styled with inline styles,
+     * so we output a tiny <style> block scoped to the input id.
+     *
+     * @param array  $a        Block attributes.
+     * @param string $input_id Unique ID for the input element.
+     * @return string HTML <style> tag, or empty string.
+     */
+    private function placeholder_style(array $a, string $input_id): string
+    {
+        // Determine the placeholder color from block supports color settings.
+        $color = '';
+
+        if (!empty($a['style']['color']['text'])) {
+            // Custom color value
+            $color = $a['style']['color']['text'];
+        } elseif (!empty($a['textColor'])) {
+            // Preset color slug → CSS variable
+            $color = sprintf('var(--wp--preset--color--%s)', \esc_attr($a['textColor']));
+        }
+
+        if (!$color) {
+            return '';
+        }
+
+        // Build a small, scoped CSS rule for the placeholder.
+        // opacity 0.7 follows the convention used by core/search.
+        return sprintf(
+            '<style>#%1$s::placeholder { color: %2$s; opacity: 0.7; }</style>',
+            \esc_attr($input_id),
+            $color  // already escaped / is a CSS var
+        );
     }
 
     private function apply_border_style(array $a, string $property, ?string $side, array &$wrapper, array &$button, array &$input): void
