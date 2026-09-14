@@ -80,19 +80,29 @@ class SearchBlock
         $input_html = $this->input_markup($attributes, $input_id, $inline, $is_button_inside, $typo_cls, $border_color_cls);
         $hidden_html = $this->hidden_params_markup($query_params);
 
-        // Render inner blocks (jankx/svg-icon placed inside the button)
+        // Render inner blocks (jankx/advanced-button or jankx/svg-icon placed inside the button)
         $inner_blocks_html = '';
+        $has_advanced_button = false;
         if (!empty($block->inner_blocks) && count($block->inner_blocks) > 0) {
             foreach ($block->inner_blocks as $inner_block) {
+                if ($inner_block->name === 'jankx/advanced-button') {
+                    $has_advanced_button = true;
+                }
                 $inner_blocks_html .= $inner_block->render();
             }
         }
 
-        $button_html = $show_button
-            ? $this->button_markup($attributes, $inline, $use_icon, $is_button_inside, $color_cls, $typo_cls, $border_color_cls, $inner_blocks_html)
-            : '';
+        // When using jankx/advanced-button as inner block, render it directly
+        // instead of building our own button markup
+        if ($has_advanced_button && !empty($inner_blocks_html)) {
+            $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $inner_blocks_html);
+        } else {
+            $button_html = $show_button
+                ? $this->button_markup($attributes, $inline, $use_icon, $is_button_inside, $color_cls, $typo_cls, $border_color_cls, $inner_blocks_html)
+                : '';
 
-        $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $button_html);
+            $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $button_html);
+        }
 
         $filter_markup = $this->filter_boxes_markup($attributes, $input_id);
         $suggestion_markup = $this->suggestion_container_markup($attributes);
