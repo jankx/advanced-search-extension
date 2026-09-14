@@ -11,13 +11,46 @@
 		line-height: 0;
 	}
 
-	svg {
+	// Only target direct fallback SVG (search-icon), NOT svg-icon block's SVG
+	> svg.search-icon,
+	> svg:not([class]) {
 		min-width: 24px;
 		min-height: 24px;
 		width: 1.25em;
 		height: 1.25em;
 		fill: currentColor;
 		vertical-align: text-bottom;
+	}
+
+	// Container for jankx/svg-icon inner block inside button
+	.wp-block-search__button-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 0;
+
+		// Let jankx/svg-icon block manage its own dimensions
+		.wp-block-jankx-svg-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+
+			.icon-container {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			// Override min-width/height that would otherwise force 24px
+			svg {
+				min-width: unset;
+				min-height: unset;
+				width: 100%;
+				height: 100%;
+				vertical-align: middle;
+				fill: currentColor;
+			}
+		}
 	}
 }
 

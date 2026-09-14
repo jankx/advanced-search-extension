@@ -1,4 +1,4 @@
-import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls, InnerBlocks, useInnerBlocksProps } from '@wordpress/block-editor';
 import {
 	PanelBody,
 	ToggleControl,
@@ -10,6 +10,7 @@ import {
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useState, useMemo } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
 
 const WIDTH_UNITS = [
 	{ value: 'px', label: 'px' },
@@ -253,9 +254,17 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		className: [
 			`wp-block-search__${buttonPosition}`,
 			buttonUseIcon ? 'wp-block-search__icon-button' : '',
-			iconName ? 'has-custom-icon' : '',
 		].filter(Boolean).join(' ').trim(),
 	});
+
+	// Check if there are inner blocks (svg-icon placed inside button)
+	const hasInnerBlocks = useSelect(
+		(select: any) => {
+			const { getBlockCount } = select('core/block-editor');
+			return getBlockCount(clientId) > 0;
+		},
+		[clientId]
+	);
 
 	const hasIconBackground = !!(iconBackgroundColor || iconBackgroundValue);
 
@@ -273,9 +282,16 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		? { color: resolvedTextColor }
 		: {};
 
-	const renderedIcon = iconName
-		? renderIcon(iconName, iconSet, iconSize, iconColor)
-		: null;
+	// InnerBlocks props for the icon slot inside button
+	const innerBlocksProps = useInnerBlocksProps(
+		{ className: 'wp-block-search__button-icon' },
+		{
+			allowedBlocks: ['jankx/svg-icon'],
+			template: [['jankx/svg-icon', {}]],
+			templateLock: false,
+			renderAppender: hasInnerBlocks ? false : InnerBlocks.ButtonBlockAppender,
+		}
+	);
 
 	return (
 		<>
@@ -323,127 +339,9 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 				</PanelBody>
 
 				<PanelBody title={__('Icon settings', 'jankx')} initialOpen={false}>
-					<div style={{ marginBottom: '12px' }}>
-						<label className="components-base-control__label" style={{ display: 'block', marginBottom: '6px' }}>
-							{__('Select icon', 'jankx')}
-						</label>
-						<Button
-							isSecondary
-							onClick={() => setIsIconPickerOpen(true)}
-							style={{ width: '100%', justifyContent: 'flex-start', gap: '8px' }}
-						>
-							{renderedIcon || <span style={{ opacity: 0.5 }}>{__('Choose an icon', 'jankx')}</span>}
-						</Button>
-						{iconName && (
-							<Button
-								isDestructive
-								isLink
-								onClick={() => setAttributes({ iconName: '', iconSet: 'material' })}
-								style={{ marginTop: '4px' }}
-							>
-								{__('Remove icon', 'jankx')}
-							</Button>
-						)}
-						<IconPickerModal
-							isOpen={isIconPickerOpen}
-							onClose={() => setIsIconPickerOpen(false)}
-							onSelect={(icon) => setAttributes({
-								iconName: icon.name,
-								iconSet: icon.iconSet,
-							})}
-							currentIcon={iconName}
-							currentSet={iconSet}
-						/>
-					</div>
-
-					{iconName && (
-						<>
-							<div className="components-base-control">
-								<label className="components-base-control__label">
-									{__('Icon size', 'jankx')}
-								</label>
-								<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-									<input
-										type="range"
-										min={12}
-										max={64}
-										value={parseInt(iconSize) || 24}
-										onChange={(e) => setAttributes({ iconSize: `${e.target.value}px` })}
-										style={{ flex: 1 }}
-									/>
-									<span style={{ minWidth: '40px', textAlign: 'right' }}>{iconSize}</span>
-								</div>
-							</div>
-
-							<div className="components-base-control">
-								<label className="components-base-control__label">
-									{__('Icon color', 'jankx')}
-								</label>
-								<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-									<input
-										type="color"
-										value={iconColor || '#333333'}
-										onChange={(e) => setAttributes({ iconColor: e.target.value })}
-										style={{ width: '40px', height: '32px', padding: '2px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}
-									/>
-									<input
-										type="text"
-										value={iconColor}
-										onChange={(e) => setAttributes({ iconColor: e.target.value })}
-										placeholder="#333333"
-										style={{ flex: 1 }}
-									/>
-								</div>
-							</div>
-
-							<div className="components-base-control">
-								<label className="components-base-control__label">
-									{__('Icon background color', 'jankx')}
-								</label>
-								<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-									<input
-										type="color"
-										value={iconBackgroundValue || '#f0f0f0'}
-										onChange={(e) => setAttributes({ iconBackgroundValue: e.target.value, iconBackgroundColor: 'custom' })}
-										style={{ width: '40px', height: '32px', padding: '2px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}
-									/>
-									<input
-										type="text"
-										value={iconBackgroundValue}
-										onChange={(e) => setAttributes({ iconBackgroundValue: e.target.value, iconBackgroundColor: e.target.value ? 'custom' : '' })}
-										placeholder="transparent"
-										style={{ flex: 1 }}
-									/>
-								</div>
-							</div>
-
-							<div className="components-base-control">
-								<label className="components-base-control__label">
-									{__('Icon padding', 'jankx')}
-								</label>
-								<input
-									type="text"
-									value={iconPadding}
-									onChange={(e) => setAttributes({ iconPadding: e.target.value })}
-									placeholder="8px"
-									style={{ width: '100%' }}
-								/>
-							</div>
-
-							<div className="components-base-control">
-								<label className="components-base-control__label">
-									{__('Icon border radius', 'jankx')}
-								</label>
-								<input
-									type="text"
-									value={iconBorderRadius}
-									onChange={(e) => setAttributes({ iconBorderRadius: e.target.value })}
-									placeholder="4px"
-									style={{ width: '100%' }}
-								/>
-							</div>
-						</>
-					)}
+					<p style={{ fontSize: '12px', color: '#555', margin: 0 }}>
+						{__('Enable "Use icon button" then click the button below to add a jankx/svg-icon block inside the search button. Use the svg-icon block\'s own settings panel to configure size, color, and appearance.', 'jankx')}
+					</p>
 				</PanelBody>
 			</InspectorControls>
 
@@ -479,11 +377,8 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 							style={Object.keys(iconButtonStyle).length ? iconButtonStyle : undefined}
 						>
 							{buttonUseIcon ? (
-								renderedIcon || (
-									<svg className="search-icon" viewBox="0 0 24 24" width="24" height="24">
-										<path d="M13 5c-3.3 0-6 2.7-6 6 0 1.4.5 2.7 1.3 3.7l-3.8 3.8 1.1 1.1 3.8-3.8c1 .8 2.3 1.3 3.7 1.3 3.3 0 6-2.7 6-6S16.3 5 13 5zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>
-									</svg>
-								)
+								// When using icon mode: show InnerBlocks (jankx/svg-icon) or fallback SVG
+								<div {...innerBlocksProps} />
 							) : (
 								buttonText || __('Tìm kiếm', 'jankx')
 							)}

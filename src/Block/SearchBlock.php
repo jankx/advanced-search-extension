@@ -79,11 +79,8 @@ class SearchBlock
         $label_html = $this->label_markup($attributes, $input_id, $inline, $show_label, $typo_cls);
         $input_html = $this->input_markup($attributes, $input_id, $inline, $is_button_inside, $typo_cls, $border_color_cls);
         $hidden_html = $this->hidden_params_markup($query_params);
-        $button_html = $show_button
-            ? $this->button_markup($attributes, $inline, $use_icon, $is_button_inside, $color_cls, $typo_cls, $border_color_cls)
-            : '';
 
-        // Render inner blocks (icon-picker, svg-icon, advanced-image-box) if present
+        // Render inner blocks (jankx/svg-icon placed inside the button)
         $inner_blocks_html = '';
         if (!empty($block->inner_blocks) && count($block->inner_blocks) > 0) {
             foreach ($block->inner_blocks as $inner_block) {
@@ -91,12 +88,11 @@ class SearchBlock
             }
         }
 
-        $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $button_html);
+        $button_html = $show_button
+            ? $this->button_markup($attributes, $inline, $use_icon, $is_button_inside, $color_cls, $typo_cls, $border_color_cls, $inner_blocks_html)
+            : '';
 
-        // Append inner blocks after the field wrapper (e.g. custom icon blocks)
-        if (!empty($inner_blocks_html)) {
-            $field_markup .= '<div class="jankx-search-form__inner-blocks">' . $inner_blocks_html . '</div>';
-        }
+        $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $button_html);
 
         $filter_markup = $this->filter_boxes_markup($attributes, $input_id);
         $suggestion_markup = $this->suggestion_container_markup($attributes);
@@ -196,7 +192,7 @@ class SearchBlock
 
     // ── Button ───────────────────────────────────────────────────────────
 
-    private function button_markup(array $a, array $inline, bool $use_icon, bool $is_inside, string $color_cls, string $typo_cls, string $border_cls): string
+    private function button_markup(array $a, array $inline, bool $use_icon, bool $is_inside, string $color_cls, string $typo_cls, string $border_cls, string $inner_blocks_html = ''): string
     {
         $classes = ['wp-block-search__button'];
         $inner = '';
@@ -216,20 +212,26 @@ class SearchBlock
         } else {
             $classes[] = 'has-icon';
 
-            $icon_name = $a['iconName'] ?? '';
-            $icon_set = $a['iconSet'] ?? 'material';
-            $icon_size = $a['iconSize'] ?? '24px';
-            $icon_color = $a['iconColor'] ?? '';
-            $icon_bg_value = $a['iconBackgroundValue'] ?? '';
-            $icon_padding = $a['iconPadding'] ?? '8px';
-            $icon_border_radius = $a['iconBorderRadius'] ?? '4px';
-
-            if (!empty($icon_name)) {
-                $inner = $this->render_custom_icon($icon_name, $icon_set, $icon_size, $icon_color, $icon_bg_value, $icon_padding, $icon_border_radius);
+            // Priority 1: Use jankx/svg-icon inner block if present
+            if (!empty($inner_blocks_html)) {
+                $inner = '<div class="wp-block-search__button-icon">' . $inner_blocks_html . '</div>';
             } else {
-                $inner = '<svg class="search-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">'
-                    . '<path d="M13 5c-3.3 0-6 2.7-6 6 0 1.4.5 2.7 1.3 3.7l-3.8 3.8 1.1 1.1 3.8-3.8c1 .8 2.3 1.3 3.7 1.3 3.3 0 6-2.7 6-6S16.3 5 13 5zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>'
-                    . '</svg>';
+                // Fallback to legacy icon picker attributes
+                $icon_name = $a['iconName'] ?? '';
+                $icon_set = $a['iconSet'] ?? 'material';
+                $icon_size = $a['iconSize'] ?? '24px';
+                $icon_color = $a['iconColor'] ?? '';
+                $icon_bg_value = $a['iconBackgroundValue'] ?? '';
+                $icon_padding = $a['iconPadding'] ?? '8px';
+                $icon_border_radius = $a['iconBorderRadius'] ?? '4px';
+
+                if (!empty($icon_name)) {
+                    $inner = $this->render_custom_icon($icon_name, $icon_set, $icon_size, $icon_color, $icon_bg_value, $icon_padding, $icon_border_radius);
+                } else {
+                    $inner = '<svg class="search-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">'
+                        . '<path d="M13 5c-3.3 0-6 2.7-6 6 0 1.4.5 2.7 1.3 3.7l-3.8 3.8 1.1 1.1 3.8-3.8c1 .8 2.3 1.3 3.7 1.3 3.3 0 6-2.7 6-6S16.3 5 13 5zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>'
+                        . '</svg>';
+                }
             }
         }
 
@@ -239,17 +241,23 @@ class SearchBlock
         }
 
         $icon_style = '';
-        if ($use_icon && !empty($icon_bg_value)) {
-            $styles = [];
-            $styles[] = sprintf('background-color: %s;', \esc_attr($icon_bg_value));
-            if (!empty($icon_padding)) {
-                $styles[] = sprintf('padding: %s;', \esc_attr($icon_padding));
-            }
-            if (!empty($icon_border_radius)) {
-                $styles[] = sprintf('border-radius: %s;', \esc_attr($icon_border_radius));
-            }
-            if (!empty($styles)) {
-                $icon_style = sprintf(' style="%s"', \esc_attr(\safecss_filter_attr(implode(' ', $styles))));
+        // Only apply background styles when NOT using svg-icon inner block
+        if ($use_icon && empty($inner_blocks_html)) {
+            $icon_bg_value = $a['iconBackgroundValue'] ?? '';
+            $icon_padding = $a['iconPadding'] ?? '8px';
+            $icon_border_radius = $a['iconBorderRadius'] ?? '4px';
+            if (!empty($icon_bg_value)) {
+                $styles = [];
+                $styles[] = sprintf('background-color: %s;', \esc_attr($icon_bg_value));
+                if (!empty($icon_padding)) {
+                    $styles[] = sprintf('padding: %s;', \esc_attr($icon_padding));
+                }
+                if (!empty($icon_border_radius)) {
+                    $styles[] = sprintf('border-radius: %s;', \esc_attr($icon_border_radius));
+                }
+                if (!empty($styles)) {
+                    $icon_style = sprintf(' style="%s"', \esc_attr(\safecss_filter_attr(implode(' ', $styles))));
+                }
             }
         }
 
