@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "wp-scripts build --config webpack.config.js",
+    "build": "wp-scripts build --config webpack.config.js && node scripts/stamp-block-version.mjs",
     "start": "wp-scripts start --config webpack.config.js"
   },
   "keywords": [],

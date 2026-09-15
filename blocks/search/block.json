@@ -183,7 +183,10 @@
         },
         "html": false
     },
+    "version": "1789457270",
     "editorScript": "file:../../dist/blocks/search/index.js",
     "editorStyle": "file:../../dist/blocks/search.css",
-    "style": "file:../../dist/blocks/style-search.css"
+    "style": [
+        "file:../../dist/blocks/style-search.css"
+    ]
 }
