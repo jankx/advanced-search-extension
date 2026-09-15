@@ -176,8 +176,8 @@
         gap: 12px;
         align-items: center;
         
-        // Ensure flex respects full width container
-        > * {
+        // Only inside-wrapper grows; label and filters stay auto-width
+        > .jankx-search-form__inside-wrapper {
             flex-grow: 1;
         }
 

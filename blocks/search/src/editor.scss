@@ -5,6 +5,41 @@
 	margin: auto;
 }
 
+// Fix: ensure the inside-wrapper is always a flex row in the editor.
+// Gutenberg adds .is-layout-flow and block-editor wrappers that can
+// reset display to block and break the horizontal layout.
+.jankx-search-form__inside-wrapper {
+	display: flex !important;
+	flex-wrap: nowrap !important;
+	align-items: center;
+
+	// The button zone rendered by useInnerBlocksProps gets extra Gutenberg
+	// classes (is-layout-flow, block-editor-inner-blocks, etc.) that default
+	// to display:block / width:100%. Override them so the button stays inline.
+	> .jankx-search-form__button {
+		flex: 0 0 auto !important;
+		width: auto !important;
+		min-width: 0;
+
+		// Inner blocks layout wrappers – keep them inline so the actual
+		// button block doesn't stretch to full container width.
+		> .block-editor-inner-blocks,
+		> .block-editor-inner-blocks > .block-editor-block-list__layout {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			width: auto;
+		}
+	}
+}
+
+// Ensure the search input shrinks correctly next to the button.
+:where(.jankx-search-form__inside-wrapper) > :where(.jankx-search-form__input) {
+	flex: 1 1 auto;
+	min-width: 3rem;
+	width: auto;
+}
+
 .jankx-search-form {
 	:where(.jankx-search-form__button) {
 		height: auto;
@@ -19,4 +54,3 @@
 .jankx-search-form__inspector-controls .components-base-control {
 	margin-bottom: 0;
 }
-
