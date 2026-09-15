@@ -35,7 +35,6 @@ const SEARCH_BUTTON_TEMPLATE: any[] = [
 ];
 
 const ALLOWED_BLOCKS = ['jankx/advanced-button'];
-const DEFAULT_INNER_PADDING = '4px';
 
 export default function SearchEdit({ attributes, setAttributes, clientId }) {
 	const {
@@ -80,20 +79,9 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 						: {};
 
 	// Border props matching WordPress core/search
-	const borderRadius = (blockStyle as any)?.border?.radius;
 	let borderProps: any = typeof __experimentalUseBorderProps === 'function'
 		? __experimentalUseBorderProps(attributes)
 		: { className: '', style: {} };
-
-	if (typeof borderRadius === 'number') {
-		borderProps = {
-			...borderProps,
-			style: {
-				...borderProps?.style,
-				borderRadius: `${borderRadius}px`,
-			},
-		};
-	}
 
 	// Typography props matching WordPress core/search
 	const [fluidTypographySettings, layout] = typeof useSettings === 'function'
@@ -111,74 +99,27 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		  })
 		: { className: '', style: {} };
 
-	// Helper for expanding border-radius on inside-wrapper when button is inside
-	const isNonZeroBorderRadius = (radius: any) =>
-		radius !== undefined && parseInt(radius, 10) !== 0;
-	const padBorderRadius = (radius: any) =>
-		isNonZeroBorderRadius(radius)
-			? `calc(${radius} + ${DEFAULT_INNER_PADDING})`
-			: undefined;
-
-	const getWrapperStyles = () => {
-		const styles: any = isButtonPositionInside
-			? { ...borderProps?.style }
-			: {
-					borderRadius: borderProps?.style?.borderRadius,
-					borderTopLeftRadius: borderProps?.style?.borderTopLeftRadius,
-					borderTopRightRadius: borderProps?.style?.borderTopRightRadius,
-					borderBottomLeftRadius: borderProps?.style?.borderBottomLeftRadius,
-					borderBottomRightRadius: borderProps?.style?.borderBottomRightRadius,
-			  };
-
-		if (isButtonPositionInside) {
-			if (typeof borderRadius === 'object' && borderRadius !== null) {
-				const {
-					borderTopLeftRadius,
-					borderTopRightRadius,
-					borderBottomLeftRadius,
-					borderBottomRightRadius,
-				} = borderProps?.style || {};
-				return {
-					...styles,
-					borderTopLeftRadius: padBorderRadius(borderTopLeftRadius),
-					borderTopRightRadius: padBorderRadius(borderTopRightRadius),
-					borderBottomLeftRadius: padBorderRadius(borderBottomLeftRadius),
-					borderBottomRightRadius: padBorderRadius(borderBottomRightRadius),
-				};
-			}
-			const radius = Number.isInteger(borderRadius)
-				? `${borderRadius}px`
-				: borderRadius;
-			styles.borderRadius = padBorderRadius(radius);
-		}
-		return styles;
-	};
-
+	// All box-level properties (border, radius, background) live on the
+	// container div — the same element that receives padding/margin from
+	// supports.spacing — mirroring the frontend SearchBlock::inline_styles.
 	const blockProps = useBlockProps({
 		className: `jankx-search-form jankx-search-form__container jankx-search-form__${buttonPosition}`,
+		style: {
+			...borderProps?.style,
+			...backgroundStyle,
+		} as React.CSSProperties,
 	});
 
-	// Input styles and classes:
-	// If button is inside, input has no border/outline (the wrapper has it), but gets typography.
-	// If button is outside, input gets borderProps (border, radius) and typographyProps.
+	// Input styles and classes: text fields only receive text colour and typography;
+	// border/radius/background are handled by the container (see above).
 	const textFieldClasses = [
 		'jankx-search-form__input',
-		isButtonPositionInside ? undefined : borderProps?.className,
 		typographyProps?.className,
 	]
 		.filter(Boolean)
 		.join(' ');
 
 	const textFieldStyles: React.CSSProperties = {
-		...(isButtonPositionInside
-			? {
-					borderRadius: borderProps?.style?.borderRadius,
-					borderTopLeftRadius: borderProps?.style?.borderTopLeftRadius,
-					borderTopRightRadius: borderProps?.style?.borderTopRightRadius,
-					borderBottomLeftRadius: borderProps?.style?.borderBottomLeftRadius,
-					borderBottomRightRadius: borderProps?.style?.borderBottomRightRadius,
-			  }
-			: borderProps?.style),
 		...typographyProps?.style,
 		...textStyle,
 		textDecoration: undefined,
@@ -186,15 +127,12 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 
 	const wrapperClasses = [
 		'jankx-search-form__inside-wrapper',
-		isButtonPositionInside ? borderProps?.className : undefined,
 	]
 		.filter(Boolean)
 		.join(' ');
 
 	const wrapperStyles: React.CSSProperties = {
 		...insideWrapperWidth,
-		...getWrapperStyles(),
-		...(isButtonPositionInside ? backgroundStyle : {}),
 		...(resolvedTextColor
 			? { ['--jankx-search-placeholder-color' as any]: resolvedTextColor }
 			: {}),
