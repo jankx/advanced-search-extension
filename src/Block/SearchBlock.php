@@ -69,15 +69,12 @@ class SearchBlock
         $is_button_inside = ($attributes['buttonPosition'] === 'button-inside');
         $query_params = is_array($attributes['query'] ?? null) ? $attributes['query'] : [];
         $inline = $this->inline_styles($attributes);
-        $color_cls = $this->color_classes($attributes);
-        $typo_cls = $this->typography_classes($attributes);
-        $border_color_cls = $this->border_color_classes($attributes);
 
         // Scoped <style> cho placeholder color (::placeholder không thể dùng inline style)
         $placeholder_style = $this->placeholder_style($attributes, $input_id);
 
-        $label_html = $this->label_markup($attributes, $input_id, $inline, $show_label, $typo_cls);
-        $input_html = $this->input_markup($attributes, $input_id, $inline, $is_button_inside, $typo_cls, $border_color_cls);
+        $label_html = $this->label_markup($attributes, $input_id, $inline, $show_label);
+        $input_html = $this->input_markup($attributes, $input_id, $inline);
         $hidden_html = $this->hidden_params_markup($query_params);
 
         // Render inner blocks (jankx/advanced-button or jankx/svg-icon placed inside the button)
@@ -95,13 +92,13 @@ class SearchBlock
         // When using jankx/advanced-button as inner block, render it directly
         // instead of building our own button markup
         if ($has_advanced_button && !empty($inner_blocks_html)) {
-            $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $inner_blocks_html);
+            $field_markup = $this->field_wrapper($inline, $input_html . $hidden_html . $inner_blocks_html);
         } else {
             $button_html = $show_button
-                ? $this->button_markup($attributes, $inline, $use_icon, $is_button_inside, $color_cls, $typo_cls, $border_color_cls, $inner_blocks_html)
+                ? $this->button_markup($attributes, $inline, $use_icon, $inner_blocks_html)
                 : '';
 
-            $field_markup = $this->field_wrapper($inline, $is_button_inside, $border_color_cls, $input_html . $hidden_html . $button_html);
+            $field_markup = $this->field_wrapper($inline, $input_html . $hidden_html . $button_html);
         }
 
         $filter_markup = $this->filter_boxes_markup($attributes, $input_id);
@@ -111,20 +108,24 @@ class SearchBlock
             ? \esc_url($attributes['searchResultsUrl'])
             : \esc_url(\home_url('/'));
 
-        $wrapper_attrs = \get_block_wrapper_attributes(['class' => $classnames]);
+        $block_wrapper_attrs = \get_block_wrapper_attributes([
+            'class' => 'jankx-search-form__container',
+            'style' => $inline['container'],
+        ]);
         $data_attrs = $this->data_attributes($attributes, $input_id);
 
         return sprintf(
             '%s'
-            . '<div class="jankx-search-form__container" %s>'
-            . '<form role="search" method="get" action="%s" %s>'
+            . '<div %s %s>'
+            . '<form role="search" method="get" action="%s" class="%s">'
             . '%s%s%s%s'
             . '</form>'
             . '</div>',
             $placeholder_style,
+            $block_wrapper_attrs,
             $data_attrs,
             $action,
-            $wrapper_attrs,
+            \esc_attr($classnames),
             $label_html,
             $filter_markup,
             $field_markup,
@@ -134,18 +135,14 @@ class SearchBlock
 
     // ── Label ────────────────────────────────────────────────────────────
 
-    private function label_markup(array $a, string $input_id, array $inline, bool $show_label, string $typo_cls): string
+    private function label_markup(array $a, string $input_id, array $inline, bool $show_label): string
     {
         $inner = empty($a['label']) ? \__('Tìm kiếm', 'jankx') : \wp_kses_post($a['label']);
         $tag = new \WP_HTML_Tag_Processor(sprintf('<label %s>%s</label>', $inline['label'], $inner));
         if ($tag->next_tag()) {
             $tag->set_attribute('for', $input_id);
             $tag->add_class('wp-block-search__label');
-            if ($show_label && !empty($a['label'])) {
-                if ($typo_cls) {
-                    $tag->add_class($typo_cls);
-                }
-            } else {
+            if (!$show_label || empty($a['label'])) {
                 $tag->add_class('screen-reader-text');
             }
         }
@@ -155,16 +152,10 @@ class SearchBlock
 
     // ── Input ────────────────────────────────────────────────────────────
 
-    private function input_markup(array $a, string $input_id, array $inline, bool $is_inside, string $typo_cls, string $border_cls): string
+    private function input_markup(array $a, string $input_id, array $inline): string
     {
         $tag = new \WP_HTML_Tag_Processor(sprintf('<input type="search" name="s" required %s/>', $inline['input']));
         $classes = ['wp-block-search__input'];
-        if (!$is_inside && $border_cls) {
-            $classes[] = $border_cls;
-        }
-        if ($typo_cls) {
-            $classes[] = $typo_cls;
-        }
 
         if ($tag->next_tag()) {
             $tag->add_class(implode(' ', $classes));
@@ -202,20 +193,10 @@ class SearchBlock
 
     // ── Button ───────────────────────────────────────────────────────────
 
-    private function button_markup(array $a, array $inline, bool $use_icon, bool $is_inside, string $color_cls, string $typo_cls, string $border_cls, string $inner_blocks_html = ''): string
+    private function button_markup(array $a, array $inline, bool $use_icon, string $inner_blocks_html = ''): string
     {
         $classes = ['wp-block-search__button'];
         $inner = '';
-
-        if ($color_cls) {
-            $classes[] = $color_cls;
-        }
-        if ($typo_cls) {
-            $classes[] = $typo_cls;
-        }
-        if (!$is_inside && $border_cls) {
-            $classes[] = $border_cls;
-        }
 
         if (!$use_icon) {
             $inner = \wp_kses_post($a['buttonText'] ?? '');
@@ -322,12 +303,9 @@ class SearchBlock
 
     // ── Field wrapper ────────────────────────────────────────────────────
 
-    private function field_wrapper(array $inline, bool $is_inside, string $border_cls, string $inner_html): string
+    private function field_wrapper(array $inline, string $inner_html): string
     {
         $classes = ['wp-block-search__inside-wrapper'];
-        if ($is_inside && $border_cls) {
-            $classes[] = $border_cls;
-        }
 
         return sprintf(
             '<div class="%s" %s>%s</div>',
@@ -437,137 +415,65 @@ class SearchBlock
         return implode(' ', $cls);
     }
 
-    private function typography_classes(array $a): string
-    {
-        $cls = [];
-        if (!empty($a['fontSize'])) {
-            $cls[] = sprintf('has-%s-font-size', \esc_attr($a['fontSize']));
-        }
-        if (!empty($a['fontFamily'])) {
-            $cls[] = sprintf('has-%s-font-family', \esc_attr($a['fontFamily']));
-        }
-
-        return implode(' ', $cls);
-    }
-
-    private function color_classes(array $a): string
-    {
-        $cls = [];
-        if (!empty($a['textColor'])) {
-            $cls[] = 'has-text-color';
-            $cls[] = sprintf('has-%s-color', $a['textColor']);
-        } elseif (!empty($a['style']['color']['text'])) {
-            $cls[] = 'has-text-color';
-        }
-        if (
-            !empty($a['backgroundColor']) || !empty($a['style']['color']['background'])
-            || !empty($a['gradient']) || !empty($a['style']['color']['gradient'])
-        ) {
-            $cls[] = 'has-background';
-        }
-        if (!empty($a['backgroundColor'])) {
-            $cls[] = sprintf('has-%s-background-color', $a['backgroundColor']);
-        }
-        if (!empty($a['gradient'])) {
-            $cls[] = sprintf('has-%s-gradient-background', $a['gradient']);
-        }
-
-        return implode(' ', $cls);
-    }
-
-    private function border_color_classes(array $a): string
-    {
-        $cls = [];
-        if (!empty($a['style']['border']['color']) || !empty($a['borderColor'])) {
-            $cls[] = 'has-border-color';
-        }
-        if (!empty($a['borderColor'])) {
-            $cls[] = sprintf('has-%s-border-color', \esc_attr($a['borderColor']));
-        }
-
-        return implode(' ', $cls);
-    }
-
     private function inline_styles(array $a): array
     {
         $wrapper = [];
-        $button = [];
-        $input = [];
-        $label = [];
+        $container = [];
 
-        // Width
+        // Width — kept on the field wrapper to match the editor preview
         if (!empty($a['width']) && !empty($a['widthUnit'])) {
             $wrapper[] = sprintf('width: %d%s;', (int) $a['width'], \esc_attr($a['widthUnit']));
         }
 
-        // Border (colour, width, style) — delegated to helper
+        // Border (colour, width, style) — all on the single block wrapper
         foreach (['width', 'color', 'style'] as $prop) {
-            $this->apply_border_styles($a, $prop, $wrapper, $button, $input);
+            $container = array_merge($container, $this->border_declarations($a, $prop));
         }
 
-        // Border radius
+        // Border radius — on the block wrapper
         if (!empty($a['style']['border']['radius'])) {
             $radius = $a['style']['border']['radius'];
-            $padding = '4px';
-            $is_inside = ($a['buttonPosition'] ?? '') === 'button-inside';
-
             if (is_array($radius)) {
                 foreach ($radius as $corner => $val) {
                     if (!$val) {
                         continue;
                     }
                     $name = strtolower((string) preg_replace('/((?<=[a-z])[A-Z])/', '-$1', $corner));
-                    $style = sprintf('border-%s-radius: %s;', \esc_attr($name), \esc_attr($val));
-                    $input[] = $style;
-                    $button[] = $style;
-                    if ($is_inside) {
-                        $wrapper[] = sprintf('border-%s-radius: calc(%s + %s);', \esc_attr($name), \esc_attr($val), $padding);
-                    }
+                    $container[] = sprintf('border-%s-radius: %s;', \esc_attr($name), \esc_attr($val));
                 }
             } else {
                 $r = is_numeric($radius) ? $radius . 'px' : $radius;
-                $style = sprintf('border-radius: %s;', \esc_attr($r));
-                $input[] = $style;
-                $button[] = $style;
-                if ($is_inside && (int) $r !== 0) {
-                    $wrapper[] = sprintf('border-radius: calc(%s + %s);', \esc_attr($r), $padding);
-                }
+                $container[] = sprintf('border-radius: %s;', \esc_attr($r));
             }
         }
 
-        // Colours — text color applies to all elements; background only on button
+        // Text colour — on the wrapper, inherited by all children
         if (!empty($a['style']['color']['text'])) {
-            $color_decl = sprintf('color: %s;', $a['style']['color']['text']);
-            $button[] = $color_decl;
-            $input[] = $color_decl;
-            $label[] = $color_decl;
+            $container[] = sprintf('color: %s;', $a['style']['color']['text']);
         } elseif (!empty($a['textColor'])) {
             // Preset text color via CSS variable
-            $color_decl = sprintf('color: var(--wp--preset--color--%s);', \esc_attr($a['textColor']));
-            $button[] = $color_decl;
-            $input[] = $color_decl;
-            $label[] = $color_decl;
-        }
-        if (!empty($a['style']['color']['background'])) {
-            $button[] = sprintf('background-color: %s;', $a['style']['color']['background']);
-        }
-        if (!empty($a['style']['color']['gradient'])) {
-            $button[] = sprintf('background: %s;', $a['style']['color']['gradient']);
+            $container[] = sprintf('color: var(--wp--preset--color--%s);', \esc_attr($a['textColor']));
         }
 
-        // Typography on all elements
+        // Background — gradient has priority over plain colour
+        if (!empty($a['style']['color']['gradient'])) {
+            $container[] = sprintf('background: %s;', \esc_attr($a['style']['color']['gradient']));
+        } elseif (!empty($a['gradient'])) {
+            $container[] = sprintf('background: var(--wp--preset--gradient--%s);', \esc_attr($a['gradient']));
+        } elseif (!empty($a['style']['color']['background'])) {
+            $bg = $a['style']['color']['background'];
+            if (str_contains((string) $bg, 'var:preset|color|')) {
+                $bg = sprintf('var(--wp--preset--color--%s)', substr($bg, strrpos($bg, '|') + 1));
+            }
+            $container[] = sprintf('background-color: %s;', \esc_attr($bg));
+        } elseif (!empty($a['backgroundColor'])) {
+            $container[] = sprintf('background-color: var(--wp--preset--color--%s);', \esc_attr($a['backgroundColor']));
+        }
+
+        // Typography — on the wrapper, inherited by all children
         $typo = $this->typography_style_string($a);
         if ($typo) {
-            $label[] = $typo;
-            $button[] = $typo;
-            $input[] = $typo;
-        }
-        if (!empty($a['style']['typography']['textDecoration'])) {
-            $td = sprintf('text-decoration: %s;', \esc_attr($a['style']['typography']['textDecoration']));
-            $button[] = $td;
-            if (!empty($a['showLabel'])) {
-                $label[] = $td;
-            }
+            $container[] = $typo;
         }
 
         $fmt = fn($parts) => $parts
@@ -575,10 +481,11 @@ class SearchBlock
             : '';
 
         return [
-            'input' => $fmt($input),
-            'button' => $fmt($button),
+            'input' => '',
+            'button' => '',
             'wrapper' => $fmt($wrapper),
-            'label' => $fmt($label),
+            'label' => '',
+            'container' => implode(' ', $container),
         ];
     }
 
@@ -643,38 +550,39 @@ class SearchBlock
         );
     }
 
-    private function apply_border_style(array $a, string $property, ?string $side, array &$wrapper, array &$button, array &$input): void
+    /**
+     * Collect border declarations (width / color / style, all sides) that are
+     * rendered on the single block wrapper alongside padding, background and
+     * typography, matching what useBlockProps() outputs in the editor.
+     *
+     * @return string[] CSS declarations, each ending with ';'.
+     */
+    private function border_declarations(array $a, string $property): array
     {
-        $is_inside = ($a['buttonPosition'] ?? '') === 'button-inside';
-        $path = ['style', 'border', $property];
-        if ($side !== null) {
-            array_splice($path, 2, 0, $side);
-        }
+        $styles = [];
 
-        $value = \_wp_array_get($a, $path, false);
-        if (!$value) {
-            return;
-        }
-
-        if ($property === 'color' && $side !== null && str_contains((string) $value, 'var:preset|color|')) {
-            $value = sprintf('var(--wp--preset--color--%s)', substr($value, strrpos($value, '|') + 1));
-        }
-
-        $suffix = $side !== null ? sprintf('%s-%s', $side, $property) : $property;
-        $decl = sprintf('border-%s: %s;', $suffix, \esc_attr($value));
-
-        if ($is_inside) {
-            $wrapper[] = $decl;
-        } else {
-            $button[] = $decl;
-            $input[] = $decl;
-        }
-    }
-
-    private function apply_border_styles(array $a, string $property, array &$wrapper, array &$button, array &$input): void
-    {
         foreach ([null, 'top', 'right', 'bottom', 'left'] as $side) {
-            $this->apply_border_style($a, $property, $side, $wrapper, $button, $input);
+            $path = ['style', 'border', $property];
+            if ($side !== null) {
+                array_splice($path, 2, 0, $side);
+            }
+
+            $value = \_wp_array_get($a, $path, false);
+            if (!$value && $side === null && $property === 'color' && !empty($a['borderColor'])) {
+                $value = sprintf('var(--wp--preset--color--%s)', \esc_attr($a['borderColor']));
+            }
+            if (!$value) {
+                continue;
+            }
+
+            if ($property === 'color' && str_contains((string) $value, 'var:preset|color|')) {
+                $value = sprintf('var(--wp--preset--color--%s)', substr($value, strrpos($value, '|') + 1));
+            }
+
+            $suffix = $side !== null ? sprintf('%s-%s', $side, $property) : $property;
+            $styles[] = sprintf('border-%s: %s;', $suffix, \esc_attr($value));
         }
+
+        return $styles;
     }
 }

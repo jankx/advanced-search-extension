@@ -134,13 +134,6 @@
 }
 
 :where(.wp-block-search__button-inside .wp-block-search__inside-wrapper) {
-	padding: 4px;
-	border-width: 1px;
-	border-style: solid;
-	border-color: #949494;
-	background-color: #fff;
-	box-sizing: border-box;
-
 	.wp-block-search__input {
 		border-radius: 0;
 		border: none;
@@ -154,6 +147,19 @@
 	:where(.wp-block-search__button) {
 		padding: 4px 8px;
 	}
+}
+
+// Neutralize the core `search` block base style (inlined by WordPress as
+// wp-block-search-inline-css) which also matches these mirrored class names and
+// hardcodes `background-color:#fff`, `border:1px solid #949494` and
+// `padding:4px`. This block re-uses the core/search DOM structure, so the field
+// visual must be fully driven by the block settings rendered on the container.
+// Scoped + higher specificity than the :where() rule → wins regardless of
+// cascade order.
+.jankx-search-form__container .wp-block-search__button-inside .wp-block-search__inside-wrapper {
+	background-color: transparent;
+	border: 0;
+	padding: 0;
 }
 
 .wp-block-search.aligncenter .wp-block-search__inside-wrapper {
