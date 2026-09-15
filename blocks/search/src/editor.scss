@@ -1,11 +1,12 @@
-// Clone of the WordPress core `core/search` editor stylesheet.
+// Editor stylesheet for Advanced Search block.
 
-.wp-block[data-align='center'] .wp-block-search .wp-block-search__inside-wrapper {
+.wp-block[data-align='center'] .jankx-search-form .jankx-search-form__inside-wrapper,
+.wp-block[data-align='center'] .wp-block-jankx-advanced-search-search .jankx-search-form__inside-wrapper {
 	margin: auto;
 }
 
-.wp-block-search {
-	:where(.wp-block-search__button) {
+.jankx-search-form {
+	:where(.jankx-search-form__button) {
 		height: auto;
 		border-radius: initial;
 		display: flex;
@@ -15,6 +16,7 @@
 	}
 }
 
-.wp-block-search__inspector-controls .components-base-control {
+.jankx-search-form__inspector-controls .components-base-control {
 	margin-bottom: 0;
 }
+

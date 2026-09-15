@@ -153,7 +153,7 @@
         },
         "typography": {
             "__experimentalSkipSerialization": true,
-            "__experimentalSelector": ".wp-block-search__label, .wp-block-search__input, .wp-block-search__button",
+            "__experimentalSelector": ".jankx-search-form__label, .jankx-search-form__input, .jankx-search-form__button",
             "fontSize": true,
             "lineHeight": true,
             "__experimentalFontFamily": true,

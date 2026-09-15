@@ -1,9 +1,8 @@
-// Clone of the WordPress core `core/search` block stylesheet
-// (wp-includes/blocks/search/style.css). Keeping the exact class names
-// means themes that style `.wp-block-search` (incl. Jankx theme.json)
-// work unchanged for this block too.
+// Stylesheet for Advanced Search block (jankx-advanced-search/search).
+// Uses scoped .jankx-search-form class names to prevent CSS conflicts
+// with WordPress core/search.
 
-.wp-block-search__button {
+.jankx-search-form__button {
 	margin-left: 10px;
 	word-break: normal;
 
@@ -23,7 +22,7 @@
 	}
 
 	// Container for jankx/svg-icon inner block inside button
-	.wp-block-search__button-icon {
+	.jankx-search-form__button-icon {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -54,23 +53,23 @@
 	}
 }
 
-:where(.wp-block-search__button) {
+:where(.jankx-search-form__button) {
 	border: 1px solid #ccc;
 	padding: 6px 10px;
 }
 
-.wp-block-search__inside-wrapper {
+.jankx-search-form__inside-wrapper {
 	display: flex;
 	flex: auto;
 	flex-wrap: nowrap;
 	max-width: 100%;
 }
 
-.wp-block-search__label {
+.jankx-search-form__label {
 	width: 100%;
 }
 
-.wp-block-search.wp-block-search__button-only .wp-block-search__button {
+.jankx-search-form.jankx-search-form__button-only .jankx-search-form__button {
 	margin-left: 0;
 	flex-shrink: 0;
 	max-width: 100%;
@@ -79,24 +78,24 @@
 	justify-content: center;
 }
 
-.wp-block-search.wp-block-search__button-only .wp-block-search__inside-wrapper {
+.jankx-search-form.jankx-search-form__button-only .jankx-search-form__inside-wrapper {
 	transition-property: width;
 	min-width: 0 !important;
 }
 
-.wp-block-search.wp-block-search__button-only .wp-block-search__input {
+.jankx-search-form.jankx-search-form__button-only .jankx-search-form__input {
 	transition-duration: 300ms;
 	flex-basis: 100%;
 }
 
-.wp-block-search.wp-block-search__button-only.wp-block-search__searchfield-hidden {
+.jankx-search-form.jankx-search-form__button-only.jankx-search-form__searchfield-hidden {
 	overflow: hidden;
 
-	.wp-block-search__inside-wrapper {
+	.jankx-search-form__inside-wrapper {
 		overflow: hidden;
 	}
 
-	.wp-block-search__input {
+	.jankx-search-form__input {
 		width: 0 !important;
 		min-width: 0 !important;
 		padding-left: 0 !important;
@@ -109,7 +108,7 @@
 	}
 }
 
-:where(.wp-block-search__input) {
+:where(.jankx-search-form__input) {
 	font-family: inherit;
 	font-weight: inherit;
 	font-size: inherit;
@@ -133,8 +132,8 @@
 	}
 }
 
-:where(.wp-block-search__button-inside .wp-block-search__inside-wrapper) {
-	.wp-block-search__input {
+:where(.jankx-search-form__button-inside .jankx-search-form__inside-wrapper) {
+	.jankx-search-form__input {
 		border-radius: 0;
 		border: none;
 		padding: 0 4px;
@@ -144,29 +143,23 @@
 		}
 	}
 
-	:where(.wp-block-search__button) {
+	:where(.jankx-search-form__button) {
 		padding: 4px 8px;
 	}
 }
 
-// Neutralize the core `search` block base style (inlined by WordPress as
-// wp-block-search-inline-css) which also matches these mirrored class names and
-// hardcodes `background-color:#fff`, `border:1px solid #949494` and
-// `padding:4px`. This block re-uses the core/search DOM structure, so the field
-// visual must be fully driven by the block settings rendered on the container.
-// Scoped + higher specificity than the :where() rule → wins regardless of
-// cascade order.
-.jankx-search-form__container .wp-block-search__button-inside .wp-block-search__inside-wrapper {
+.jankx-search-form__container .jankx-search-form__button-inside .jankx-search-form__inside-wrapper {
 	background-color: transparent;
 	border: 0;
 	padding: 0;
 }
 
-.wp-block-search.aligncenter .wp-block-search__inside-wrapper {
+.jankx-search-form.aligncenter .jankx-search-form__inside-wrapper,
+.wp-block-jankx-advanced-search-search.aligncenter .jankx-search-form__inside-wrapper {
 	margin: auto;
 }
 
-.wp-block[data-align='right'] .wp-block-search.wp-block-search__button-only .wp-block-search__inside-wrapper {
+.wp-block[data-align='right'] .jankx-search-form.jankx-search-form__button-only .jankx-search-form__inside-wrapper {
 	float: right;
 }
 
@@ -176,7 +169,8 @@
     position: relative;
     max-width: 100%;
     
-    form {
+    form,
+    &.jankx-search-form {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
@@ -341,8 +335,8 @@
 
 /* --- Icon Button Styles --- */
 
-.wp-block-search__icon-button {
-	.wp-block-search__button {
+.jankx-search-form__icon-button {
+	.jankx-search-form__button {
 		&.has-icon {
 			display: inline-flex;
 			align-items: center;

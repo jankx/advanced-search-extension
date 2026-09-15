@@ -41,7 +41,7 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		style: blockStyle = {},
 	} = attributes;
 
-	const inputId = `wp-block-search__input-${clientId}`;
+	const inputId = `jankx-search-form__input-${clientId}`;
 	const insideWrapperStyle = width ? { width: `${width}${widthUnit}` } : undefined;
 
 	const resolvedTextColor: string | undefined =
@@ -49,7 +49,7 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		(textColor ? `var(--wp--preset--color--${textColor})` : undefined);
 
 	const blockProps = useBlockProps({
-		className: `wp-block-search__${buttonPosition}`,
+		className: `jankx-search-form jankx-search-form__container jankx-search-form__${buttonPosition}`,
 	});
 
 	const textStyle: { color?: string } = resolvedTextColor
@@ -57,7 +57,7 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		: {};
 
 	const buttonWrapperProps = useInnerBlocksProps(
-		{ className: 'wp-block-search__button' },
+		{ className: 'jankx-search-form__button' },
 		{
 			allowedBlocks: ALLOWED_BLOCKS,
 			template: SEARCH_BUTTON_TEMPLATE,
@@ -92,7 +92,7 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 						onChange={(value) => setAttributes({ buttonPosition: value })}
 						help={__('Show the button inside or outside the search field', 'jankx')}
 					/>
-					<div className="wp-block-search__inspector-controls">
+					<div className="jankx-search-form__inspector-controls">
 						<SelectControl
 							label={__('Width unit', 'jankx')}
 							value={widthUnit}
@@ -105,14 +105,14 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 
 			<div {...blockProps}>
 				<label
-					className={showLabel ? 'wp-block-search__label' : 'screen-reader-text'}
+					className={showLabel ? 'jankx-search-form__label' : 'screen-reader-text'}
 					htmlFor={inputId}
 					style={textStyle}
 				>
 					{label || __('Tìm kiếm', 'jankx')}
 				</label>
 				<div
-					className="wp-block-search__inside-wrapper"
+					className="jankx-search-form__inside-wrapper"
 					style={{
 						...insideWrapperStyle,
 						...(resolvedTextColor ? { ['--jankx-search-placeholder-color' as string]: resolvedTextColor } : {}),
@@ -120,7 +120,7 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 				>
 					<input
 						id={inputId}
-						className="wp-block-search__input"
+						className="jankx-search-form__input"
 						type="search"
 						placeholder={placeholder}
 						value=""

@@ -141,7 +141,7 @@ class SearchBlock
         $tag = new \WP_HTML_Tag_Processor(sprintf('<label %s>%s</label>', $inline['label'], $inner));
         if ($tag->next_tag()) {
             $tag->set_attribute('for', $input_id);
-            $tag->add_class('wp-block-search__label');
+            $tag->add_class('jankx-search-form__label');
             if (!$show_label || empty($a['label'])) {
                 $tag->add_class('screen-reader-text');
             }
@@ -155,7 +155,7 @@ class SearchBlock
     private function input_markup(array $a, string $input_id, array $inline): string
     {
         $tag = new \WP_HTML_Tag_Processor(sprintf('<input type="search" name="s" required %s/>', $inline['input']));
-        $classes = ['wp-block-search__input'];
+        $classes = ['jankx-search-form__input'];
 
         if ($tag->next_tag()) {
             $tag->add_class(implode(' ', $classes));
@@ -195,7 +195,7 @@ class SearchBlock
 
     private function button_markup(array $a, array $inline, bool $use_icon, string $inner_blocks_html = ''): string
     {
-        $classes = ['wp-block-search__button'];
+        $classes = ['jankx-search-form__button'];
         $inner = '';
 
         if (!$use_icon) {
@@ -205,7 +205,7 @@ class SearchBlock
 
             // Priority 1: Use jankx/svg-icon inner block if present
             if (!empty($inner_blocks_html)) {
-                $inner = '<div class="wp-block-search__button-icon">' . $inner_blocks_html . '</div>';
+                $inner = '<div class="jankx-search-form__button-icon">' . $inner_blocks_html . '</div>';
             } else {
                 // Fallback to legacy icon picker attributes
                 $icon_name = $a['iconName'] ?? '';
@@ -305,7 +305,7 @@ class SearchBlock
 
     private function field_wrapper(array $inline, string $inner_html): string
     {
-        $classes = ['wp-block-search__inside-wrapper'];
+        $classes = ['jankx-search-form__inside-wrapper'];
 
         return sprintf(
             '<div class="%s" %s>%s</div>',
@@ -386,30 +386,30 @@ class SearchBlock
         ]);
     }
 
-    // ── CSS helpers (ported from core/search) ───────────────────────────
+    // ── CSS helpers ─────────────────────────────────────────────────────
 
     private function classnames(array $a): string
     {
-        $cls = [];
+        $cls = ['jankx-search-form'];
         $pos = $a['buttonPosition'] ?? 'button-outside';
 
         if ($pos === 'button-inside') {
-            $cls[] = 'wp-block-search__button-inside';
+            $cls[] = 'jankx-search-form__button-inside';
         }
         if ($pos === 'button-outside') {
-            $cls[] = 'wp-block-search__button-outside';
+            $cls[] = 'jankx-search-form__button-outside';
         }
         if ($pos === 'no-button') {
-            $cls[] = 'wp-block-search__no-button';
+            $cls[] = 'jankx-search-form__no-button';
         }
         if ($pos === 'button-only') {
-            $cls[] = 'wp-block-search__button-outside';
+            $cls[] = 'jankx-search-form__button-outside';
         } // fallback
 
         if (!empty($a['buttonUseIcon']) && $pos !== 'no-button') {
-            $cls[] = 'wp-block-search__icon-button';
+            $cls[] = 'jankx-search-form__icon-button';
         } elseif (empty($a['buttonUseIcon']) && $pos !== 'no-button') {
-            $cls[] = 'wp-block-search__text-button';
+            $cls[] = 'jankx-search-form__text-button';
         }
 
         return implode(' ', $cls);
