@@ -61,6 +61,24 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 		? { color: resolvedTextColor }
 		: {};
 
+	// Background colour/gradient from block settings (mirrors the frontend
+	// SearchBlock::inline_styles output on the capsule wrapper).
+	const colorStyle = (blockStyle as any)?.color;
+	const resolveColor = (value?: string) =>
+		value?.includes('var:preset|color|')
+			? `var(--wp--preset--color--${value.split('|').pop()})`
+			: value;
+	const backgroundStyle =
+		colorStyle?.gradient
+			? { background: colorStyle.gradient }
+			: colorStyle?.background
+				? { backgroundColor: resolveColor(colorStyle.background) }
+				: attributes?.gradient
+					? { background: `var(--wp--preset--gradient--${attributes.gradient})` }
+					: attributes?.backgroundColor
+						? { backgroundColor: `var(--wp--preset--color--${attributes.backgroundColor})` }
+						: {};
+
 	// Border props matching WordPress core/search
 	const borderRadius = (blockStyle as any)?.border?.radius;
 	let borderProps: any = typeof __experimentalUseBorderProps === 'function'
@@ -176,6 +194,7 @@ export default function SearchEdit({ attributes, setAttributes, clientId }) {
 	const wrapperStyles: React.CSSProperties = {
 		...insideWrapperWidth,
 		...getWrapperStyles(),
+		...(isButtonPositionInside ? backgroundStyle : {}),
 		...(resolvedTextColor
 			? { ['--jankx-search-placeholder-color' as any]: resolvedTextColor }
 			: {}),
