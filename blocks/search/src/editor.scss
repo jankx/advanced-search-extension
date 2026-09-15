@@ -40,6 +40,17 @@
 	width: auto;
 }
 
+:where(.jankx-search-form__button-inside .jankx-search-form__inside-wrapper) {
+	:where(.jankx-search-form__input) {
+		border: none !important;
+		background: transparent !important;
+
+		&:focus {
+			outline: none !important;
+		}
+	}
+}
+
 .jankx-search-form {
 	:where(.jankx-search-form__button) {
 		height: auto;
