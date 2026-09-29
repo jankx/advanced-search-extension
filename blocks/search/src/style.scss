@@ -4,6 +4,11 @@
 
 .jankx-search-form__button {
 	margin-left: 10px;
+	flex-shrink: 0;
+	border: none;
+	background: transparent;
+	border-radius: 0;
+	padding: 6px 10px;
 	word-break: normal;
 
 	&.has-icon {
@@ -53,11 +58,6 @@
 	}
 }
 
-:where(.jankx-search-form__button) {
-	border: 1px solid #ccc;
-	padding: 6px 10px;
-}
-
 .jankx-search-form__inside-wrapper {
 	display: flex;
 	flex: auto;
@@ -65,50 +65,19 @@
 	max-width: 100%;
 }
 
-.jankx-search-form__label {
-	width: 100%;
-}
-
-.jankx-search-form.jankx-search-form__button-only .jankx-search-form__button {
+// The container is the single framed, rounded box of the field — render()
+// puts border, background and radius on it. Input + button blend into that
+// one box so we never stack a second border inside the container's rim.
+.jankx-search-form__input {
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-width: 3rem;
 	margin-left: 0;
-	flex-shrink: 0;
-	max-width: 100%;
-	box-sizing: border-box;
-	display: flex;
-	justify-content: center;
-}
-
-.jankx-search-form.jankx-search-form__button-only .jankx-search-form__inside-wrapper {
-	transition-property: width;
-	min-width: 0 !important;
-}
-
-.jankx-search-form.jankx-search-form__button-only .jankx-search-form__input {
-	transition-duration: 300ms;
-	flex-basis: 100%;
-}
-
-.jankx-search-form.jankx-search-form__button-only.jankx-search-form__searchfield-hidden {
-	overflow: hidden;
-
-	.jankx-search-form__inside-wrapper {
-		overflow: hidden;
-	}
-
-	.jankx-search-form__input {
-		width: 0 !important;
-		min-width: 0 !important;
-		padding-left: 0 !important;
-		padding-right: 0 !important;
-		border-left-width: 0 !important;
-		border-right-width: 0 !important;
-		flex-grow: 0;
-		margin: 0;
-		flex-basis: 0;
-	}
-}
-
-:where(.jankx-search-form__input) {
+	margin-right: 0;
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	padding: 8px;
 	font-family: inherit;
 	font-weight: inherit;
 	font-size: inherit;
@@ -116,46 +85,62 @@
 	letter-spacing: inherit;
 	text-transform: inherit;
 	font-style: inherit;
-	padding: 8px;
-	flex-grow: 1;
-	margin-left: 0;
-	margin-right: 0;
-	min-width: 3rem;
-	border: 1px solid #949494;
 	text-decoration: unset !important;
-	appearance: initial;
+	appearance: none;
+	-webkit-appearance: none;
+
+	// Kill native search decorations (magnifier / clear button)
+	&::-webkit-search-decoration,
+	&::-webkit-search-cancel-button,
+	&::-webkit-search-results-button,
+	&::-webkit-search-results-decoration {
+		-webkit-appearance: none;
+		appearance: none;
+	}
 
 	// Follow placeholder color from CSS custom property set by editor JS / PHP style tag.
 	&::placeholder {
 		color: var(--jankx-search-placeholder-color, currentColor);
 		opacity: 0.7;
 	}
-}
 
-:where(.jankx-search-form__button-inside .jankx-search-form__inside-wrapper) {
-	.jankx-search-form__input {
-		border-radius: 0;
-		border: none;
-		padding: 0 4px;
-		background: transparent;
-
-		&:focus {
-			outline: none;
-		}
-	}
-
-	:where(.jankx-search-form__button) {
-		padding: 4px 8px;
+	&:focus-visible {
+		outline: none;
 	}
 }
 
-.jankx-search-form.aligncenter .jankx-search-form__inside-wrapper,
-.wp-block-jankx-advanced-search-search.aligncenter .jankx-search-form__inside-wrapper {
-	margin: auto;
+// The inner jankx/advanced-button renders bare on the frontend (no
+// .jankx-search-form__button wrapper, unlike the editor preview). Keep it a
+// compact flex item with the same spacing as the block's own button so the
+// icon never stretches or sticks to the input.
+.jankx-search-form__inside-wrapper > .wp-block-jankx-advanced-button,
+.jankx-search-form__inside-wrapper > .jankx-advanced-button,
+.jankx-search-form__inside-wrapper > .jankx-search-form__button {
+	flex: 0 0 auto;
 }
 
-.wp-block[data-align='right'] .jankx-search-form.jankx-search-form__button-only .jankx-search-form__inside-wrapper {
-	float: right;
+.jankx-search-form__inside-wrapper > .wp-block-jankx-advanced-button,
+.jankx-search-form__inside-wrapper > .jankx-advanced-button {
+	display: inline-flex;
+	margin: 0;
+	margin-left: 10px;
+}
+
+// Inside the pill the button blends into the container frame.
+.jankx-search-form__button-inside .jankx-search-form__button {
+	padding: 4px 8px;
+}
+
+// Label lives on its own row above the field.
+.jankx-search-form__label {
+	width: 100%;
+}
+
+// Block alignment classes land on the block root (container).
+.jankx-search-form__container.aligncenter {
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 /* --- Advanced Search Feature Extensions --- */
@@ -163,7 +148,22 @@
 .jankx-search-form__container {
     position: relative;
     max-width: 100%;
-    
+
+    // Single framed box: render() puts border/radius/background on the
+    // container and the input + button blend into it. Neutral default so the
+    // field is visible even without any block styling.
+    border: 1px solid var(--wp--preset--color--border, #d1d5db);
+    border-radius: 8px;
+
+    // Pill instances carry a background — drop the rim, the fill is the frame.
+    &[style*='background'] {
+        border: none;
+    }
+
+    &:focus-within {
+        border-color: var(--wp--preset--color--primary, #503aa8);
+    }
+
     form,
     &.jankx-search-form {
         display: flex;
@@ -347,20 +347,5 @@
 				pointer-events: none;
 			}
 		}
-	}
-}
-
-.jankx-search-form__inner-blocks {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	margin-left: 6px;
-
-	.jankx-icon-picker-block,
-	.wp-block-jankx-svg-icon,
-	.wp-block-jankx-advanced-image-box {
-		display: inline-flex;
-		align-items: center;
-		margin: 0;
 	}
 }
