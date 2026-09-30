@@ -16,7 +16,6 @@ namespace Jankx\Extensions\AdvancedSearch\Search;
 class SearchProvider
 {
     const TAB_ALL = 'all';
-    const TAB_EXPERIENCE = 'experience';
     const TAB_GUIDE = 'guide';
     const TAB_PLACE = 'place';
     const TAB_TOUR = 'tour';
@@ -32,11 +31,7 @@ class SearchProvider
     protected $tabs = [
         self::TAB_ALL => [
             'label' => 'Tất cả',
-            'post_types' => ['tour', 'experience', 'place', 'product', 'post'],
-        ],
-        self::TAB_EXPERIENCE => [
-            'label' => 'Trải nghiệm',
-            'post_types' => ['experience'],
+            'post_types' => ['tour', 'place', 'product', 'post'],
         ],
         self::TAB_GUIDE => [
             'label' => 'Cẩm nang du lịch',
@@ -70,16 +65,6 @@ class SearchProvider
             'days_meta' => '_tour_duration_days',
             'nights_meta' => '_tour_duration_nights',
             'tag_taxonomies' => ['tour_category', 'destination'],
-        ],
-        'experience' => [
-            'label' => 'Trải nghiệm',
-            'price_meta' => '_experience_price',
-            'price_from_meta' => '',
-            'rating_meta' => '_experience_rating',
-            'review_meta' => '_experience_review_count',
-            'days_meta' => '',
-            'nights_meta' => '',
-            'tag_taxonomies' => ['destination'],
         ],
         'place' => [
             'label' => 'Địa điểm',

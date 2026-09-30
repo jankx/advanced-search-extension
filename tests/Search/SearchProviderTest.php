@@ -16,7 +16,6 @@ class SearchProviderTest extends TestCase
 
         $expected = [
             SearchProvider::TAB_ALL,
-            SearchProvider::TAB_EXPERIENCE,
             SearchProvider::TAB_GUIDE,
             SearchProvider::TAB_PLACE,
             SearchProvider::TAB_TOUR,
@@ -24,7 +23,6 @@ class SearchProviderTest extends TestCase
 
         $this->assertSame($expected, array_keys($tabs));
         $this->assertSame('Tất cả', $tabs[SearchProvider::TAB_ALL]['label']);
-        $this->assertSame('Trải nghiệm', $tabs[SearchProvider::TAB_EXPERIENCE]['label']);
         $this->assertSame('Cẩm nang du lịch', $tabs[SearchProvider::TAB_GUIDE]['label']);
         $this->assertSame('Ăn gì ở đâu', $tabs[SearchProvider::TAB_PLACE]['label']);
         $this->assertSame('Tour & Dịch vụ', $tabs[SearchProvider::TAB_TOUR]['label']);
@@ -69,8 +67,8 @@ class SearchProviderTest extends TestCase
 
         // Mixed types with different keys → forced PHP sort.
         $this->assertSame(
-            ['_tour_price', '_experience_price', '_place_price', '_product_price'],
-            $provider->price_meta_keys(['tour', 'experience', 'place', 'product'])
+            ['_tour_price', '_place_price', '_product_price'],
+            $provider->price_meta_keys(['tour', 'place', 'product'])
         );
 
         // Types without a price meta key are excluded.
@@ -85,8 +83,8 @@ class SearchProviderTest extends TestCase
         $this->assertSame(['_tour_rating'], $provider->rating_meta_keys(['tour']));
         $this->assertSame([], $provider->rating_meta_keys(['post', 'product']));
         $this->assertSame(
-            ['_tour_rating', '_experience_rating', '_place_rating'],
-            $provider->rating_meta_keys(['tour', 'experience', 'place'])
+            ['_tour_rating', '_place_rating'],
+            $provider->rating_meta_keys(['tour', 'place'])
         );
     }
 

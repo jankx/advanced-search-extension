@@ -27,7 +27,6 @@ class SearchResultsRendererTest extends TestCase
         $this->assertStringContainsString('Kết quả tìm kiếm', $html);
         $this->assertStringContainsString('cho &ldquo;Tràng An&rdquo;', $html);
         $this->assertStringContainsString('Tất cả', $html);
-        $this->assertStringContainsString('Trải nghiệm', $html);
         $this->assertStringContainsString('Cẩm nang du lịch', $html);
         $this->assertStringContainsString('Ăn gì ở đâu', $html);
         $this->assertStringContainsString('Tour & Dịch vụ', $html);

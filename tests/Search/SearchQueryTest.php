@@ -37,13 +37,12 @@ class SearchQueryTest extends TestCase
                 '_tour_duration_nights' => 1,
             ],
         ]);
-        $exp = $this->seed([
-            'post_type' => 'experience',
+        $tourC = $this->seedTour([
             'post_title' => 'Chèo thuyền Tràng An',
             'post_date' => '2026-07-01 00:00:00',
             'meta_input' => [
-                '_experience_price' => 500000,
-                '_experience_rating' => 4.5,
+                '_tour_price' => 500000,
+                '_tour_rating' => 4.5,
             ],
         ]);
         $place = $this->seed([
@@ -68,7 +67,7 @@ class SearchQueryTest extends TestCase
             'post_date' => '2026-02-01 00:00:00',
         ]);
 
-        return compact('tourA', 'tourB', 'exp', 'place', 'product', 'guide');
+        return compact('tourA', 'tourB', 'tourC', 'place', 'product', 'guide');
     }
 
     public function test_keyword_filters_results()
@@ -86,9 +85,6 @@ class SearchQueryTest extends TestCase
     {
         $this->seedCatalog();
 
-        $result = $this->query()->run('', SearchProvider::TAB_EXPERIENCE, SearchProvider::SORT_RECOMMENDED, 1, 12);
-        $this->assertSame(['Chèo thuyền Tràng An'], $this->titles($result));
-
         $result = $this->query()->run('', SearchProvider::TAB_PLACE, SearchProvider::SORT_RECOMMENDED, 1, 12);
         $this->assertSame(['Tam Cốc Bích Động'], $this->titles($result));
 
@@ -98,7 +94,7 @@ class SearchQueryTest extends TestCase
         // Tour & Dịch vụ covers tours + products (newest first).
         $result = $this->query()->run('', SearchProvider::TAB_TOUR, SearchProvider::SORT_RECOMMENDED, 1, 12);
         $this->assertSame(
-            ['Cốm Cháy Cố Đô', 'Tour Hoa Lư Cổ Đô cao cấp', 'Tour Tràng An 1 ngày'],
+            ['Cốm Cháy Cố Đô', 'Chèo thuyền Tràng An', 'Tour Hoa Lư Cổ Đô cao cấp', 'Tour Tràng An 1 ngày'],
             $this->titles($result)
         );
     }
@@ -131,26 +127,26 @@ class SearchQueryTest extends TestCase
     {
         $this->seedCatalog();
         $this->seed([
-            'post_type' => 'experience',
-            'post_title' => 'Trải nghiệm cao cấp',
+            'post_type' => 'place',
+            'post_title' => 'Địa điểm cao cấp',
             'post_date' => '2026-01-02 00:00:00',
-            'meta_input' => ['_experience_price' => 2000000],
+            'meta_input' => ['_place_price' => 2000000],
         ]);
         $this->seed([
-            'post_type' => 'experience',
-            'post_title' => 'Trải nghiệm giá rẻ',
+            'post_type' => 'place',
+            'post_title' => 'Địa điểm giá rẻ',
             'post_date' => '2026-01-01 00:00:00',
-            'meta_input' => ['_experience_price' => 300000],
+            'meta_input' => ['_place_price' => 300000],
         ]);
 
-        $result = $this->query()->run('', SearchProvider::TAB_EXPERIENCE, SearchProvider::SORT_PRICE_ASC, 1, 12);
+        $result = $this->query()->run('', SearchProvider::TAB_PLACE, SearchProvider::SORT_PRICE_ASC, 1, 12);
 
         $this->assertSame(
-            ['Trải nghiệm giá rẻ', 'Chèo thuyền Tràng An', 'Trải nghiệm cao cấp'],
+            ['Tam Cốc Bích Động', 'Địa điểm giá rẻ', 'Địa điểm cao cấp'],
             $this->titles($result)
         );
-        $this->assertSame(300000.0, $result['items'][0]['price']);
-        $this->assertSame(500000.0, $result['items'][1]['price']);
+        $this->assertSame(150000.0, $result['items'][0]['price']);
+        $this->assertSame(300000.0, $result['items'][1]['price']);
         $this->assertSame(2000000.0, $result['items'][2]['price']);
     }
 
@@ -158,22 +154,22 @@ class SearchQueryTest extends TestCase
     {
         $this->seedCatalog();
         $this->seed([
-            'post_type' => 'experience',
-            'post_title' => 'Trải nghiệm cao cấp',
+            'post_type' => 'place',
+            'post_title' => 'Địa điểm cao cấp',
             'post_date' => '2026-01-02 00:00:00',
-            'meta_input' => ['_experience_price' => 2000000],
+            'meta_input' => ['_place_price' => 2000000],
         ]);
         $this->seed([
-            'post_type' => 'experience',
-            'post_title' => 'Trải nghiệm giá rẻ',
+            'post_type' => 'place',
+            'post_title' => 'Địa điểm giá rẻ',
             'post_date' => '2026-01-01 00:00:00',
-            'meta_input' => ['_experience_price' => 300000],
+            'meta_input' => ['_place_price' => 300000],
         ]);
 
-        $result = $this->query()->run('', SearchProvider::TAB_EXPERIENCE, SearchProvider::SORT_PRICE_DESC, 1, 12);
+        $result = $this->query()->run('', SearchProvider::TAB_PLACE, SearchProvider::SORT_PRICE_DESC, 1, 12);
 
         $this->assertSame(
-            ['Trải nghiệm cao cấp', 'Chèo thuyền Tràng An', 'Trải nghiệm giá rẻ'],
+            ['Địa điểm cao cấp', 'Địa điểm giá rẻ', 'Tam Cốc Bích Động'],
             $this->titles($result)
         );
     }
@@ -260,7 +256,7 @@ class SearchQueryTest extends TestCase
 
         $result = $this->query()->run('', SearchProvider::TAB_TOUR, SearchProvider::SORT_RECOMMENDED, 1, 12);
 
-        $this->assertCount(3, $result['items']);
+        $this->assertCount(4, $result['items']);
         $this->assertNotContains('Tour nháp bí mật', $this->titles($result));
     }
 }
