@@ -68,8 +68,8 @@ abstract class TestCase extends BaseTestCase
             'meta_input' => [
                 '_tour_price' => 1500000,
                 '_tour_price_is_from' => 1,
-                '_tour_rating' => 4.8,
-                '_tour_review_count' => 12,
+                'jankx_rating_average' => 4.8,
+                'jankx_rating_count' => 12,
                 '_tour_duration_days' => 1,
                 '_tour_duration_nights' => 0,
             ],
@@ -77,6 +77,26 @@ abstract class TestCase extends BaseTestCase
                 'tour_category' => ['Tour phổ thông'],
             ],
         ], $overrides));
+    }
+
+    /**
+     * Declare the tour-only meta the travel extension owns, through the same
+     * filter TravelExtension uses. Tests that care about the "starting from"
+     * flag or the duration must call this.
+     */
+    protected function declareTourSearchMeta(): void
+    {
+        add_filter('jankx/advanced_search/post_type_config', function ($config, $postType) {
+            if ($postType !== 'tour') {
+                return $config;
+            }
+
+            $config['price_from_meta'] = '_tour_price_is_from';
+            $config['days_meta'] = '_tour_duration_days';
+            $config['nights_meta'] = '_tour_duration_nights';
+
+            return $config;
+        }, 10, 2);
     }
 
     protected function titles(array $result): array

@@ -52,6 +52,8 @@ class SearchResultsRendererTest extends TestCase
 
     public function test_render_emits_result_card()
     {
+        $this->declareTourSearchMeta();
+
         $this->seedTour();
         $html = $this->render(['s' => 'Tràng An']);
 

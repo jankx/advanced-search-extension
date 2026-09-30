@@ -9,9 +9,13 @@ use Jankx\Extensions\AdvancedSearch\Rest\AdvancedSearchController;
  * Advanced Search Extension
  *
  * Replaces the default WordPress search results page with a rich layout:
- * a search header, category tabs (Trải nghiệm / Cẩm nang du lịch /
- * Ăn gì ở đâu / Tour & Dịch vụ), a result toolbar with sorting, and a
+ * a search header, a category tab bar, a result toolbar with sorting, and a
  * 4-column card grid with thumbnails, rating, price and duration.
+ *
+ * The tabs and the per-post-type card data are not fixed here: SearchProvider
+ * derives them from the product registry, the rating repository and the
+ * registered taxonomies, and exposes them through the
+ * `jankx/advanced_search/*` filters.
  *
  * Renders through the `jankx-advanced-search/results` block, which the
  * child theme's `templates/search.html` embeds on the search template.

@@ -20,9 +20,14 @@ class AdvancedSearchControllerTest extends TestCase
     {
         $this->controller()->register_routes();
 
-        $this->assertCount(1, $GLOBALS['__routes']);
-        $route = $GLOBALS['__routes'][0];
+        $routes = array_map(function ($route) {
+            return $route['route'];
+        }, $GLOBALS['__routes']);
 
+        $this->assertCount(3, $GLOBALS['__routes']);
+        $this->assertSame(['/results', '/suggestions', '/filter-data'], $routes);
+
+        $route = $GLOBALS['__routes'][0];
         $this->assertSame('jankx/advanced-search/v1', $route['namespace']);
         $this->assertSame('/results', $route['route']);
         $this->assertSame('GET', $route['args']['methods']);
@@ -31,13 +36,15 @@ class AdvancedSearchControllerTest extends TestCase
 
     public function test_get_results_returns_formatted_data()
     {
+        $this->declareTourSearchMeta();
+
         $this->seedTour([
             'post_title' => 'Tour Tràng An 1 ngày',
             'meta_input' => [
                 '_tour_price' => 1500000,
                 '_tour_price_is_from' => 1,
-                '_tour_rating' => 4.8,
-                '_tour_review_count' => 12,
+                'jankx_rating_average' => 4.8,
+                'jankx_rating_count' => 12,
                 '_tour_duration_days' => 1,
                 '_tour_duration_nights' => 0,
             ],

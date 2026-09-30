@@ -29,6 +29,11 @@ if (file_exists($composerAutoload)) {
     require_once $composerAutoload;
 }
 
+// 1b. Cross-extension stubs (product registry, rating repository, site
+//     registry). Loaded eagerly because SearchProvider resolves them by
+//     class name at runtime.
+require_once __DIR__ . '/Support/CrossExtensionStubs.php';
+
 // 2. PSR-4 fallback autoloader for this extension (covers the case where the
 //    Composer autoloader is not regenerated yet).
 spl_autoload_register(function ($class) {
@@ -37,8 +42,23 @@ spl_autoload_register(function ($class) {
         return;
     }
 
-    $file = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (file_exists($file)) {
+    $relative = substr($class, strlen($prefix));
+    $roots = [__DIR__ . '/../src/'];
+    if (strncmp('Tests\\', $relative, 6) === 0) {
+        $roots[] = __DIR__ . '/';
+        $relative = substr($relative, 6);
+    }
+
+    $file = null;
+    foreach ($roots as $root) {
+        $candidate = $root . str_replace('\\', '/', $relative) . '.php';
+        if (file_exists($candidate)) {
+            $file = $candidate;
+            break;
+        }
+    }
+
+    if ($file !== null) {
         require_once $file;
     }
 });
@@ -314,8 +334,13 @@ if (!function_exists('advanced_search_test_stub_wp_functions')) {
         $GLOBALS['__paged'] = 0;
 
         \Jankx\Extensions\AdvancedSearch\Tests\Support\PostStore::reset();
+        \Jankx\Extensions\AdvancedSearch\Tests\Support\SiteRegistry::reset();
+        \Jankx\Extensions\AdvancedSearch\Tests\Support\SiteRegistry::seedDefaultSite();
 
         Brain\Monkey\Functions\when('__')->returnArg();
+        Brain\Monkey\Functions\when('absint')->alias(function ($value) {
+            return abs((int) $value);
+        });
         Brain\Monkey\Functions\when('_x')->returnArg();
         Brain\Monkey\Functions\when('esc_html__')->returnArg();
         Brain\Monkey\Functions\when('esc_html_x')->returnArg();
@@ -365,7 +390,15 @@ if (!function_exists('advanced_search_test_stub_wp_functions')) {
             return true;
         });
 
-        Brain\Monkey\Functions\when('apply_filters')->alias(function ($tag, $value) {
+        Brain\Monkey\Functions\when('apply_filters')->alias(function ($tag, $value, ...$args) {
+            foreach ($GLOBALS['__registered_filters'] as $filter) {
+                if ($filter['tag'] !== $tag) {
+                    continue;
+                }
+
+                $value = call_user_func_array($filter['callback'], array_merge([$value], $args));
+            }
+
             return $value;
         });
 
@@ -513,6 +546,28 @@ if (!function_exists('advanced_search_test_stub_wp_functions')) {
             }
 
             return '';
+        });
+
+        // Post type registry lookups, driven by the in-memory SiteRegistry so
+        // SearchProvider's derived configuration can be asserted.
+        Brain\Monkey\Functions\when('post_type_exists')->alias(function ($postType) {
+            return \Jankx\Extensions\AdvancedSearch\Tests\Support\SiteRegistry::postTypeExists((string) $postType);
+        });
+
+        Brain\Monkey\Functions\when('get_post_type_object')->alias(function ($postType) {
+            $label = \Jankx\Extensions\AdvancedSearch\Tests\Support\SiteRegistry::label((string) $postType);
+            if ($label === null) {
+                return null;
+            }
+
+            return (object) [
+                'name' => (string) $postType,
+                'labels' => (object) ['name' => $label],
+            ];
+        });
+
+        Brain\Monkey\Functions\when('get_object_taxonomies')->alias(function ($postType, $output = 'names') {
+            return \Jankx\Extensions\AdvancedSearch\Tests\Support\SiteRegistry::taxonomies((string) $postType);
         });
     }
 }

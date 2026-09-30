@@ -34,7 +34,13 @@ class SearchQuery
     ): array {
         $postTypes = $this->provider->get_tab_post_types($tab);
         if (empty($postTypes)) {
-            $postTypes = ['post'];
+            // A tab with nothing to filter by searches every post type the
+            // provider knows about, instead of guessing a single type.
+            $postTypes = $this->provider->discover_post_types();
+        }
+
+        if (empty($postTypes)) {
+            $postTypes = ['any'];
         }
 
         // Post-type filter box: narrow down to a single post type inside the tab
